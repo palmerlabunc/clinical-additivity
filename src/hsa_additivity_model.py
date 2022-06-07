@@ -1,10 +1,9 @@
 import pandas as pd
 import numpy as np
-from datetime import date
 from pathlib import Path
 from utils import populate_N_patients, fit_rho3
 
-OUTDIR = '../analysis/PFS_predictions/{}/'.format(date.today())
+OUTDIR = '../data/PFS_predictions/'
 new_directory = Path(OUTDIR)
 new_directory.mkdir(parents=True, exist_ok=True)
 
@@ -73,7 +72,7 @@ def predict_both(df_a, df_b, name_a, name_b, subtracted, scan_time, N=5000, rho=
         tmax_flag = False
     
     if tmax_flag:
-        print(name_a, name_b)
+        #print(name_a, name_b)
         tmax = min(a['Time'].max(), b['Time'].max())
         a.loc[a['Time'] > tmax, 'Time'] = tmax
         b.loc[b['Time'] > tmax, 'Time'] = tmax
@@ -81,9 +80,9 @@ def predict_both(df_a, df_b, name_a, name_b, subtracted, scan_time, N=5000, rho=
     patients = a['Survival'].values
     new_a, new_b = fit_rho3(a['Time'].values, b['Time'].values, rho)
     additivity = pd.DataFrame({'Time': sample_joint_response_add(new_a, new_b, subtracted, scan_time),
-                               'Survival': a['Survival'].values})
+                               'Survival': patients})
     independent = pd.DataFrame({'Time': sample_joint_response(new_a, new_b), 
-                                'Survival': a['Survival'].values})
+                                'Survival': patients})
 
     additivity = additivity.sort_values('Survival', ascending=True).reset_index(drop=True)
     independent = independent.sort_values('Survival', ascending=True).reset_index(drop=True)

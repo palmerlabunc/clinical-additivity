@@ -3,6 +3,7 @@ import numpy as np
 from scipy.interpolate import interp1d
 from scipy.stats import spearmanr
 
+rng = np.random.default_rng(2021)
 
 def interpolate(df, x='Time', y='Survival', kind='zero'):
     return interp1d(df[x], df[y], kind=kind, fill_value='extrapolate')
@@ -71,7 +72,7 @@ def fit_rho3(a, b, rho, ori_rho=None):
     rho_mat = np.array([[1, pearson_r], [pearson_r, 1]])
     size = rho_mat.shape[0]
     means = np.zeros(size)
-    u = np.random.multivariate_normal(means, rho_mat, size=n)
+    u = rng.multivariate_normal(means, rho_mat, size=n)
     i1 = np.argsort(u[:, 0])
     i2 = np.argsort(u[:, 1])
     x1, x2 = np.zeros(n), np.zeros(n)
