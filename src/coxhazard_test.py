@@ -3,7 +3,7 @@ import numpy as np
 from lifelines import CoxPHFitter
 from utils import interpolate
 
-INDIR = '../data/PFS_predictions/tmax_test/'
+INDIR = '../data/PFS_predictions/'
 
 def create_ipd(df, n=500):
     interp = interpolate(df, x='Survival', y='Time')

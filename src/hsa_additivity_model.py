@@ -3,7 +3,7 @@ import numpy as np
 from pathlib import Path
 from utils import populate_N_patients, fit_rho3
 
-OUTDIR = '../data/PFS_predictions/tmax_test/'
+OUTDIR = '../data/PFS_predictions/'
 new_directory = Path(OUTDIR)
 new_directory.mkdir(parents=True, exist_ok=True)
 
