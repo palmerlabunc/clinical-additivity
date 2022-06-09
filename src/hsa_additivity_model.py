@@ -3,7 +3,7 @@ import numpy as np
 from pathlib import Path
 from utils import populate_N_patients, fit_rho3
 
-OUTDIR = '../data/PFS_predictions/'
+OUTDIR = '../data/PFS_predictions/tmax_test/'
 new_directory = Path(OUTDIR)
 new_directory.mkdir(parents=True, exist_ok=True)
 
@@ -61,21 +61,6 @@ def predict_both(df_a, df_b, name_a, name_b, subtracted, scan_time, N=5000, rho=
     """
     a = populate_N_patients(df_a, N)
     b = populate_N_patients(df_b, N)
-
-    # if the shorter curve goes down to < 5%, ok to set different max time
-    # if not, set universal max time as min of max times
-    min_idx = np.argmin([df_a['Time'].max(), df_b['Time'].max()])
-    tmax_flag = True
-    if min_idx == 0 and df_a['Survival'].min() < 5:
-        tmax_flag = False
-    elif min_idx == 1 and df_b['Survival'].min() < 5:
-        tmax_flag = False
-    
-    if tmax_flag:
-        #print(name_a, name_b)
-        tmax = min(a['Time'].max(), b['Time'].max())
-        a.loc[a['Time'] > tmax, 'Time'] = tmax
-        b.loc[b['Time'] > tmax, 'Time'] = tmax
     
     patients = a['Survival'].values
     new_a, new_b = fit_rho3(a['Time'].values, b['Time'].values, rho)
@@ -86,6 +71,10 @@ def predict_both(df_a, df_b, name_a, name_b, subtracted, scan_time, N=5000, rho=
 
     additivity = additivity.sort_values('Survival', ascending=True).reset_index(drop=True)
     independent = independent.sort_values('Survival', ascending=True).reset_index(drop=True)
+
+    tmax = np.amin([a['Time'].max(), b['Time'].max()])
+    independent.loc[independent['Time'] > tmax, 'Time'] = tmax
+    additivity.loc[additivity['Time'] > tmax, 'Time'] = tmax
 
     additivity.round(5).to_csv(
         OUTDIR + '{0}-{1}_combination_predicted_add.csv'.format(name_a, name_b), index=False)
