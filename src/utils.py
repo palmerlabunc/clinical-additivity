@@ -3,7 +3,7 @@ import numpy as np
 from scipy.interpolate import interp1d
 from scipy.stats import spearmanr
 
-rng = np.random.default_rng(2021)
+
 
 def interpolate(df, x='Time', y='Survival', kind='zero'):
     return interp1d(df[x], df[y], kind=kind, fill_value='extrapolate')
@@ -50,7 +50,7 @@ def populate_N_patients(ori_df, N):
     return new_df[['Time', 'Survival']].sort_values('Survival').reset_index(drop=True)
 
 
-def fit_rho3(a, b, rho, ori_rho=None):
+def fit_rho3(a, b, rho, ori_rho=None, seed=0):
     """ Shuffle data of two sorted dataset to make two dataset to have a desired Spearman correlation.
     Note that a and b should be have the same length.
     Modified from: https://www.mathworks.com/help/stats/generate-correlated-data-using-rank-correlation.html
@@ -60,6 +60,7 @@ def fit_rho3(a, b, rho, ori_rho=None):
         b (array_like): sorted dataset 2
         rho (float): desired spearman correlation coefficient
         ori_rho (float): internal argument for recursive part (default: None)
+        seed (int): random generator seed
 
     Returns:
         tuple: tuple of shuffled datsets (np.ndarray)
@@ -67,6 +68,9 @@ def fit_rho3(a, b, rho, ori_rho=None):
     """
     if ori_rho is None:
         ori_rho = rho
+    
+    rng = np.random.default_rng(seed)
+    
     n = len(a)
     pearson_r = 2 * np.sin(rho * np.pi / 6)
     rho_mat = np.array([[1, pearson_r], [pearson_r, 1]])
