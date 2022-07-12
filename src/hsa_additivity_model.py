@@ -89,7 +89,7 @@ def predict_both(df_a, df_b, name_a, name_b, subtracted, scan_time,
 
 
 def main():
-    indf = pd.read_csv('../data/trials/final_input_list.txt', sep='\t')
+    indf = pd.read_csv('../data/trials/final_input_list_with_seed.txt', sep='\t')
     for i in indf.index:
         print(i)
         name_a = indf.at[i, 'Experimental']

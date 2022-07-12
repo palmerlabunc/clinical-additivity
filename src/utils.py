@@ -87,8 +87,8 @@ def fit_rho3(a, b, rho, ori_rho=None, seed=0):
     result, _ = spearmanr(x1, x2)
     # recursive until reaches 2 decimal point accuracy
     if ori_rho - result > 0.01:  # aim for higher rho
-        x1, x2 = fit_rho3(a, b, rho + 0.01, ori_rho=ori_rho)
+        x1, x2 = fit_rho3(a, b, rho + 0.01, ori_rho=ori_rho, seed=seed)
     elif ori_rho - result < -0.01:  # aim for lower rho
-        x1, x2 = fit_rho3(a, b, rho - 0.01, ori_rho=ori_rho)
+        x1, x2 = fit_rho3(a, b, rho - 0.01, ori_rho=ori_rho, seed=seed)
 
     return (x1, x2)
