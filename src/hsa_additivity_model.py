@@ -46,8 +46,17 @@ def sample_joint_response(ori_a, ori_b):
     return sorted(np.maximum(ori_a, ori_b), reverse=True)
 
 
+def set_tmax(df_a, df_b, df_ab):
+    if df_a.at[0, 'Survival'] < 5 and df_b.at[0, 'Survival'] < 5:
+        tmax = min(
+            max(df_a.at[0, 'Time'], df_b.at[0, 'Time']), df_ab.at[0, 'Time'])
+    else:
+        tmax = min(df_a['Time'].max(), df_b['Time'].max())
+    return tmax
+
+
 def predict_both(df_a, df_b, name_a, name_b, subtracted, scan_time, 
-                 N=5000, rho=0.3, ind_seed=0, add_seed=0):
+                 df_ab=None, N=5000, rho=0.3, seed_ind=0, seed_add=0, save=True):
     """ Predict combination effect using HSA and additivity model and writes csv output.
 
     Args:
@@ -57,35 +66,49 @@ def predict_both(df_a, df_b, name_a, name_b, subtracted, scan_time,
         name_b (str): treatment B name
         subtracted (str): treatment arm to substract first scan time from ('a' or 'b')
         scan_time (float): first scan time
+        df_ab (pd.DataFrame, optional): survival data for treatment A+B. Defaults to None.
         N (int, optional): number of virtual patients. Defaults to 5000.
         rho (float, optional): correlation value. Defaults to 0.3.
-        ind_seed (int): random generator seed for independent model. Defaults to 0.
-        add_seed (int): random generator seed for additivity model. Defaults to 0.
+        seed_ind (int): random generator seed for independent model. Defaults to 0.
+        seed_add (int): random generator seed for additivity model. Defaults to 0.
+        save (bool): export data to csv. Defaults to True.
+    
+    Returns:
+        pd.DataFrame : HSA prediction
+        pd.DataFrame : additivity prediction
     """
     a = populate_N_patients(df_a, N)
     b = populate_N_patients(df_b, N)
     
     patients = a['Survival'].values
-
-    new_ind_a, new_ind_b = fit_rho3(a['Time'].values, b['Time'].values, rho, ind_seed)
+    rng_ind = np.random.default_rng(seed_ind)
+    new_ind_a, new_ind_b = fit_rho3(a['Time'].values, b['Time'].values, rho, rng_ind)
     independent = pd.DataFrame({'Time': sample_joint_response(new_ind_a, new_ind_b), 
                                 'Survival': patients})
     
-    new_add_a, new_add_b = fit_rho3(a['Time'].values, b['Time'].values, rho, add_seed)
+    rng_add = np.random.default_rng(seed_add)
+    new_add_a, new_add_b = fit_rho3(a['Time'].values, b['Time'].values, rho, rng_add)
     additivity = pd.DataFrame({'Time': sample_joint_response_add(new_add_a, new_add_b, subtracted, scan_time),
                                'Survival': patients})
 
     additivity = additivity.sort_values('Survival', ascending=True).reset_index(drop=True)
     independent = independent.sort_values('Survival', ascending=True).reset_index(drop=True)
-
-    tmax = np.amin([a['Time'].max(), b['Time'].max()])
+    
+    if df_ab is not None:
+        tmax = set_tmax(df_a, df_b, df_ab)
+    else:
+        tmax = min(df_a['Time'].max(), df_b['Time'].max())
+    
     independent.loc[independent['Time'] > tmax, 'Time'] = tmax
     additivity.loc[additivity['Time'] > tmax, 'Time'] = tmax
 
-    additivity.round(5).to_csv(
-        OUTDIR + '{0}-{1}_combination_predicted_add.csv'.format(name_a, name_b), index=False)
-    independent.round(5).to_csv(
-        OUTDIR + '{0}-{1}_combination_predicted_ind.csv'.format(name_a, name_b), index=False)
+    if save == True:
+        additivity.round(5).to_csv(
+            OUTDIR + '{0}-{1}_combination_predicted_add.csv'.format(name_a, name_b), index=False)
+        independent.round(5).to_csv(
+            OUTDIR + '{0}-{1}_combination_predicted_ind.csv'.format(name_a, name_b), index=False)
+    
+    return (independent, additivity)
 
 
 def main():
@@ -94,16 +117,18 @@ def main():
         print(i)
         name_a = indf.at[i, 'Experimental']
         name_b = indf.at[i, 'Control']
+        name_ab = indf.at[i, 'Combination']
         path = indf.at[i, 'Path'] + '/'
         corr = indf.at[i, 'Corr']  # experimental spearman correlation value
         # random generator seed that results in median of 100 simulations
-        ind_seed = indf.at[i, 'ind_median_run']
-        add_seed = indf.at[i, 'add_median_run']
-        df_a = pd.read_csv(path + indf.at[i, 'Experimental'] + '.clean.csv', 
+        seed_ind = indf.at[i, 'ind_median_run']
+        seed_add = indf.at[i, 'add_median_run']
+        df_a = pd.read_csv(path + name_a + '.clean.csv', 
                            header=0, index_col=False)
-        df_b = pd.read_csv(path + indf.at[i, 'Control'] + '.clean.csv', 
+        df_b = pd.read_csv(path + name_b + '.clean.csv', 
                            header=0, index_col=False)
-
+        df_ab = pd.read_csv(path + name_ab + '.clean.csv',
+                            header=0, index_col=False)
         # subtract initial scan time of the larger one
         scan_a = indf.at[i, 'Experimental First Scan Time']
         scan_b = indf.at[i, 'Control First Scan Time']
@@ -118,8 +143,8 @@ def main():
             scan_time = scan_a
             subtracted = 'a'
 
-        predict_both(df_a, df_b, name_a, name_b, subtracted, scan_time, 
-                     rho=corr, ind_seed=ind_seed, add_seed=add_seed)
+        predict_both(df_a, df_b, name_a, name_b, subtracted, scan_time,
+                     df_ab=df_ab, rho=corr, seed_ind=seed_ind, seed_add=seed_add)
 
 if __name__ == "__main__":
     main()

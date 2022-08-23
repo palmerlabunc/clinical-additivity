@@ -1,1 +1,4 @@
 data/
+figures/*.pdf
+src/__pycache__
+src/plotting/__pycache__

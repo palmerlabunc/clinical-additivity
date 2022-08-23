@@ -1,0 +1,23 @@
+name: surv
+channels:
+  - bioconda
+  - conda-forge
+  - defaults
+dependencies:
+  - parallel
+  - jupyter
+  - autopep8
+  - scipy
+  - statsmodels
+  - seaborn
+  - matplotlib
+  - python=3.7
+  - pandas
+  - numpy
+  - scikit-learn
+  - lifelines
+  - xlrd
+  - openpyxl
+  - nb_conda_kernels
+  - jupyterlab
+prefix: /Users/haeunhwangbo/anaconda3/envs/surv
