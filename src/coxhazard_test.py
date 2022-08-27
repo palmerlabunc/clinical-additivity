@@ -6,6 +6,18 @@ from utils import interpolate
 INDIR = '../data/PFS_predictions/'
 
 def create_ipd(df, n=500):
+    """Creates individual patient data (IPD) for a given survival curve.
+    The survival curve is broken into n equal survival intervals. All events are considered
+    as failed before the end of follow-up. All events after follow-up are considered
+    censored.
+
+    Args:
+        df (pd.DataFrame): survival data points
+        n (int, optional): number of patients to generate. Defaults to 500.
+
+    Returns:
+        pd.DataFrame: individual patient data
+    """    
     interp = interpolate(df, x='Survival', y='Time')
     # censoring due to loss of follow-up at the tail
     min_surv = np.round(np.ceil(df['Survival'].min())/100, 2)

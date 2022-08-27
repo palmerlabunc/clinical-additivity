@@ -4,13 +4,24 @@ from plotting.r2_msd_histogram import plot_r2_histogram, plot_msd_histogram
 from plotting.subgroup_boxplots import plot_ici_boxplot, plot_angio_boxplot, plot_mono_approval_boxplot, plot_HR_boxplot
 from plotting.plot_survival_curves import plot_additive_survival, plot_between_survival, plot_hsa_survival
 from plotting.forest_plot import forest_plot
+from pathlib import Path
 
 def figure2(outdir):
+    """ Generate and export figure 2.
+
+    Args:
+        outdir (str): output directory
+    """
     fig2 = forest_plot()
     fig2.savefig(outdir + 'fig3_forest_plot.pdf')
 
 
 def figure3(outdir):
+    """ Generate and export figure 3.
+
+    Args:
+        outdir (str): output directory
+    """
     fig3_part1 = plot_additive_survival()
     fig3_part1.savefig(outdir + 'fig3_additive_survival_plots.pdf')
     
@@ -22,11 +33,19 @@ def figure3(outdir):
 
 
 def figure4(outdir):
+    """ Generate and export figure 4.
+
+    Args:
+        outdir (str): output directory
+    """
     # Figure 4A
     fig4a = plot_all_survival_qqplot()
     fig4a.savefig(outdir + 'fig4a_all_combo_qqplot.pdf',
                   bbox_inches='tight', pad_inches=0.1)
 
+    fig4a_legend = qqplot_legends()
+    fig4a_legend.savefig(outdir + 'fig4a_legend.pdf')
+    
     # Figure 4B
     fig4b = plot_r2_histogram()
     fig4b.savefig(outdir + 'fig4b_r2_histogram.pdf',
@@ -58,6 +77,9 @@ def figure4(outdir):
 
 def main():
     outdir = '../figures/'
+    new_directory = Path(outdir)
+    new_directory.mkdir(parents=True, exist_ok=True)
+
     figure2(outdir)
     figure3(outdir)
     figure4(outdir)

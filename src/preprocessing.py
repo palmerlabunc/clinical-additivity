@@ -110,9 +110,20 @@ def preprocess_everything():
             new.round(5).to_csv(path + name + '.clean.csv', index=False)
 
 
+def preprocess_placebo():
+    indf = pd.read_csv('../data/placebo/placebo_input_list.txt', sep='\t', header=0)
+    for i in range(indf.shape[0]):
+        path = indf.at[i, 'Path'] + '/'
+        name = indf.at[i, 'File prefix']
+        new = preprocess_survival_data(path + name + '.csv')
+        new.round(5).to_csv(path + name + '.clean.csv', index=False)
+        print(path)
+
+
 def main():
     #sanity_check_everything()
     preprocess_everything()
+    preprocess_placebo()
 
 
 if __name__ == '__main__':

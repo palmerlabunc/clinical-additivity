@@ -8,6 +8,13 @@ warnings.filterwarnings("ignore")
 
 
 def prepare_data_for_qqplot(cox_df):
+    """Prepare dataframe for plotting.
+    Args:
+        cox_df (pd.DataFrame): cox_ph_test.csv file
+
+    Returns:
+        pd.DataFrame: dataframe for plotting
+    """    
     tmp = cox_df[['Path', 'Experimental', 'Control',
                   'Combination', 'Figure', 'Model']]
 
@@ -20,6 +27,11 @@ def prepare_data_for_qqplot(cox_df):
 
 
 def plot_all_survival_qqplot():
+    """Plot QQ-plot (expected vs. observed) of all PFS curves in the dataset.
+    
+    Returns:
+        plt.figure : figure object
+    """    
     indir, cox_df = import_input_data()
     tmp = prepare_data_for_qqplot(cox_df)
 
@@ -88,6 +100,11 @@ def plot_all_survival_qqplot():
 
 
 def qqplot_legends():
+    """Generate legend figure for the QQ-plot.
+    
+    Returns:
+        plt.figure: legend figure
+    """    
     custom_dict = {'Fits to other model': 0, 'Breast': 1, 'Cervical': 2,
                    'Colorectal': 3, 'Gastric': 4, 'HeadNeck': 5,
                    'Leukemia': 6, 'Lung': 7, 'Melanoma': 8, 'Mesothelioma': 9,

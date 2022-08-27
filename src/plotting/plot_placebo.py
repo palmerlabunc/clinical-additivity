@@ -1,0 +1,48 @@
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+import warnings
+warnings.filterwarnings("ignore")
+
+
+def make_label(name):
+    tokens = name.split('_')
+    cancer = tokens[0]
+    author, year = tokens[2][:-4], tokens[2][-4:]
+    return f"{cancer} Cancer \n({author} et al. {year})"
+
+
+def plot_one_placebo(df, scan_time, ax, label=None):
+    ticks = [0, 50, 100]
+
+    ### plot
+    ax.plot(df['Time'], df['Survival'], linewidth=1, color='k')
+    ax.axvline(scan_time, color='r', linewidth=1)
+    ax.set_title(make_label(label))
+    ax.set_xlabel('')
+    ax.set_ylim(0, 105)
+    ax.set_yticks(ticks)
+    #ax.xaxis.set_major_locator(plticker.MultipleLocator(6))
+    #ax.axes.xaxis.set_ticklabels([])
+
+    return ax
+
+
+def plot_placebo():
+    indf = pd.read_csv('../data/placebo/placebo_input_list.txt', sep='\t', header=0)
+    rows, cols = 3, 3
+    fig, axes = plt.subplots(rows, cols, sharey=True, 
+                             figsize=(6, 6), 
+                             subplot_kw=dict(box_aspect=0.5), dpi=300)
+
+    sns.despine()
+    flat_axes = axes.flatten()
+
+    for i in range(indf.shape[0]):
+        path = indf.at[i, 'Path'] + '/'
+        file_prefix = indf.at[i, 'File prefix']
+        scan_time = indf.at[i, 'First scan time (months)']
+        placebo = pd.read_csv(path + file_prefix + '.clean.csv', header=0)
+        flat_axes[i] = plot_one_placebo(placebo, scan_time, flat_axes[i], label=file_prefix)
+
+    return fig

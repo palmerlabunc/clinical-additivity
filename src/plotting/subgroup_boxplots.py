@@ -9,6 +9,17 @@ import warnings
 warnings.filterwarnings("ignore")
 
 def plot_box(df, group, order, model='add'):
+    """Helper function for boxplot.
+
+    Args:
+        df (pd.DataFrame): input data
+        group (str): column name (categorical data) to plot
+        order (list of strings): order to plot the categorical levels in
+        model (str, optional): Model to use between HSA and additivity (ind or add). Defaults to 'add'.
+
+    Returns:
+        (plt.figure, plt.axes): tuple of figure and its associated axes
+    """    
     fig, ax = plt.subplots(figsize=(2, 1))
 
     if model == 'ind':
@@ -36,6 +47,14 @@ def plot_box(df, group, order, model='add'):
     return (fig, ax)
 
 def plot_box_wrapper(feature):
+    """Wrapper function to boxplot. Does the preprocessing, plotting, and adding p-values.
+
+    Args:
+        feature (str): Column name (categorical data) to plot the data
+
+    Returns:
+        plt.figure: boxplot figure
+    """    
     _, df = import_input_data()
     df.loc[:, feature] = df[feature].replace({0: 'No', 1: 'Yes'})
     _, p_yes = wilcoxon(np.log(df[df[feature] == 'Yes']['HR_add']))
@@ -46,21 +65,41 @@ def plot_box_wrapper(feature):
     return fig
 
 def plot_ici_boxplot():
+    """Generate a boxplot for ICI combinations yes/no.
+
+    Returns:
+        plt.figure: plotted figure
+    """    
     fig = plot_box_wrapper("ICI Combo")
     return fig
 
 
 def plot_angio_boxplot():
+    """Generate a boxplot for anti-angiogenesis combinations yes/no.
+
+    Returns:
+        plt.figure: plotted figure
+    """
     fig = plot_box_wrapper("Anti-angio")
     return fig
 
 
 def plot_mono_approval_boxplot():
+    """Generate a boxplot for monotherapy approval yes/no.
+
+    Returns:
+        plt.figure: plotted figure
+    """
     fig = plot_box_wrapper("Monotherapy Approval")
     return fig
 
 
 def plot_HR_boxplot():
+    """Generate a boxplot for HR > 0.6 yes/no.
+
+    Returns:
+        plt.figure: plotted figure
+    """
     _, df = import_input_data()
     df.loc[:, 'HR binary'] = 'HR <= 0.6'
     df.loc[df['HR(combo/control)'] > 0.6, 'HR binary'] = 'HR > 0.6'

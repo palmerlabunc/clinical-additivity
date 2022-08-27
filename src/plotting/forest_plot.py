@@ -8,7 +8,12 @@ import warnings
 warnings.filterwarnings("ignore")
 
 def forest_plot():
-    indir, cox_df = import_input_data_include_suppl()
+    """Generate forest plot and return figure.
+
+    Returns:
+        plt.figure : figure
+    """    
+    _, cox_df = import_input_data_include_suppl()
     
     add_df = cox_df[(cox_df['Model'] == 'additive') |
                     (cox_df['Model'] == 'synergy')]

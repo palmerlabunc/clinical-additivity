@@ -9,6 +9,15 @@ warnings.filterwarnings("ignore")
 
 
 def prepare_data_for_r2_histogram(indir, cox_df):
+    """Preprocess dataframe to plot R2 hsitogram.
+
+    Args:
+        indir (str): input directory path
+        cox_df (pd.DataFrame): cox_ph_test.csv dataframe
+
+    Returns:
+        pd.DataFrame: preprocessed dataframe
+    """    
 
     r2_df = cox_df[['Path', 'Experimental', 'Control',
                     'Combination', 'label', 'Figure', 'Model']]
@@ -63,6 +72,11 @@ def prepare_data_for_r2_histogram(indir, cox_df):
 
 
 def plot_r2_histogram():
+    """Generate a plot for R2 histogram.
+
+    Returns:
+        plt.figure: plotted figure
+    """    
     indir, cox_df = import_input_data()
     r2_df = prepare_data_for_r2_histogram(indir, cox_df)
     cols = 2
@@ -89,6 +103,15 @@ def plot_r2_histogram():
     return fig
 
 def prepare_data_for_msd_histogram(indir, cox_df):
+    """Preprocess dataframe to plot MSD (mean signed difference) hsitogram.
+
+    Args:
+        indir (str): input directory path
+        cox_df (pd.DataFrame): cox_ph_test.csv dataframe
+
+    Returns:
+        pd.DataFrame: preprocessed dataframe
+    """
     error_df = cox_df[['Path', 'Experimental', 'Control',
                        'Combination', 'label', 'Figure', 'Model']]
     error_df.loc[:, 'error_ind'] = np.nan
@@ -138,6 +161,11 @@ def prepare_data_for_msd_histogram(indir, cox_df):
 
 
 def plot_msd_histogram():
+    """Generate a plot for MSD histogram.
+
+    Returns:
+        plt.figure: plotted figure
+    """
     indir, cox_df = import_input_data()
     error_df = prepare_data_for_msd_histogram(indir, cox_df)
     cols = 2

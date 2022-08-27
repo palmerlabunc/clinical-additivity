@@ -3,27 +3,38 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.ticker as plticker
 import seaborn as sns
-from .plot_utils import import_input_data
+from .plot_utils import import_input_data, get_model_colors
 import warnings
 warnings.filterwarnings("ignore")
 
 
 def plot_survivals(df_control, df_combo, df_add, df_ind, ax, label=None):
+    """Helper function to plot survival curves. Plots survival on plt.Axes object.
+
+    Args:
+        df_control (pd.DataFrame): control arm survival data
+        df_combo (pd.DataFrame): combination arm survival data
+        df_add (pd.DataFrame): additivity survival data
+        df_ind (pd.DataFrame): HSA survival data
+        ax (plt.axes): axes to plot on
+        label (str, optional): label of the combination. Defaults to None.
+
+    Returns:
+        plt.axes: plotted axes
+    """    
     ticks = [0, 50, 100]
     # define colors
-    blue = [i/255 for i in (0, 128, 255)]
-    orange = [i/255 for i in (255, 219, 40)]
-    red = [i/255 for i in (200, 0, 50)]
+    color_dict = get_model_colors()
     # set same max time
     tmax = np.amin(
         [df_combo['Time'].max(), df_ind['Time'].max(), df_control['Time'].max()])
 
     ### plot
     ax.plot(df_control['Time'], df_control['Survival'],
-            alpha=1, color=orange, linewidth=1)
-    ax.plot(df_combo['Time'], df_combo['Survival'], color='k', linewidth=1)
-    ax.plot(df_ind['Time'], df_ind['Survival'], color=blue, linewidth=1)
-    ax.plot(df_add['Time'], df_add['Survival'], color=red, linewidth=1)
+            alpha=1, color=color_dict['control'], linewidth=1)
+    ax.plot(df_combo['Time'], df_combo['Survival'], color=color_dict['combo'], linewidth=1)
+    ax.plot(df_ind['Time'], df_ind['Survival'], color=color_dict['HSA'], linewidth=1)
+    ax.plot(df_add['Time'], df_add['Survival'], color=color_dict['additive'], linewidth=1)
 
     if label is not None:
         ax.text(-0.1, 1.15, label, transform=ax.transAxes,
@@ -39,6 +50,12 @@ def plot_survivals(df_control, df_combo, df_add, df_ind, ax, label=None):
 
 
 def plot_additive_survival():
+    """Generates a figure with all combination survival curves that are only
+    consistent with or surpass additivity.
+
+    Returns:
+        plt.figure:
+    """    
     indir, cox_df = import_input_data()
     tmp = cox_df[(cox_df['Figure'] == 'additive') |
                  (cox_df['Figure'] == 'synergy')]
@@ -78,6 +95,12 @@ def plot_additive_survival():
 
 
 def plot_between_survival():
+    """Generates a figure with all combination survival curves that are
+    consistent with both additivity and HSA.
+
+    Returns:
+        plt.figure:
+    """    
     indir, cox_df = import_input_data()
     tmp = cox_df[(cox_df['Figure'] == 'between')]
     # sort by cancer types
@@ -110,6 +133,12 @@ def plot_between_survival():
 
 
 def plot_hsa_survival():
+    """Generates a figure with all combination survival curves that are
+    only consistent with or inferior to HSA.
+
+    Returns:
+        plt.figure:
+    """    
     indir, cox_df = import_input_data()
     tmp = cox_df[(cox_df['Figure'] == 'independent') | (
         cox_df['Figure'] == 'worse than independent')]
