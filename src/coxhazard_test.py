@@ -26,21 +26,32 @@ def create_ipd(df, n=500):
     return pd.DataFrame({'Time': t, 'Event': events})
 
 
-def get_cox_results(ipd_obs, ipd_exp):
+def get_cox_results(ipd_base, ipd_test):
+    """Perform Cox PH test. IPD should have columns Time, Event.
+    HR < 1 indicates that test has less hazard (i.e., better than) base.
+
+    Args:
+        ipd_base (pd.DataFrame): IPD of control arm.
+        ipd_test (pd.DataFrame): IPD of test arm. 
+
+    Returns:
+        (float, float, float, float): p, HR, lower 95% CI, upper 95% CI
+    """    
     cph = CoxPHFitter()
-    merged = pd.concat([ipd_obs, ipd_exp],
+    ipd_base.loc[:, 'Arm'] = 0
+    ipd_test.loc[:, 'Arm'] = 1
+    merged = pd.concat([ipd_base, ipd_test],
                         axis=0).reset_index(drop=True)
-    merged = merged.fillna(0)
-    merged.loc[:,'Arm'] = merged.loc[:,'Arm'].astype(int)
     cph.fit(merged, duration_col='Time', event_col='Event')
     return tuple(cph.summary.loc['Arm', ['p', 'exp(coef)', 'exp(coef) lower 95%', 'exp(coef) upper 95%']])
+
 
 def cox_ph_test(input_df):
     tmp = input_df
     # output dataframe
     cox_df = pd.DataFrame(index=tmp.index, 
                                 columns=['p_ind', 'HR_ind', 'HRlower_ind', 'HRupper_ind', 
-                                         'p_add', 'HR_add', 'HRlower_add', 'HRupper_add', 'model'])
+                                         'p_add', 'HR_add', 'HRlower_add', 'HRupper_add', 'Model'])
 
     for i in range(tmp.shape[0]):
         print(i)
@@ -58,8 +69,6 @@ def cox_ph_test(input_df):
             print("used IPD")
         except FileNotFoundError:
             ipd_ab = create_ipd(df_ab, n=200)
-        
-        ipd_ab.loc[:, 'Arm'] = 1
 
         # import prediction
         independent = pd.read_csv(INDIR + '{0}-{1}_combination_predicted_ind.csv'.format(name_a, name_b)).dropna()
@@ -72,25 +81,21 @@ def cox_ph_test(input_df):
         ipd_add = create_ipd(additive)
         ipd_ind = create_ipd(independent)
 
-        # set up data for Cox regression
-        cph = CoxPHFitter()
-        
         # additive
-        p, hr, hr_lower_add, hr_upper_add = get_cox_results(ipd_ab, ipd_add)
+        p, hr, hr_lower_add, hr_upper_add = get_cox_results(ipd_add, ipd_ab)
         cox_df.at[i, 'p_add'] = p
         cox_df.at[i, 'HR_add'] = hr
         cox_df.at[i, 'HRlower_add'] = hr_lower_add
         cox_df.at[i, 'HRupper_add'] = hr_upper_add
 
         # independent
-        p, hr, hr_lower_ind, hr_upper_ind = get_cox_results(ipd_ab, ipd_ind)
+        p, hr, hr_lower_ind, hr_upper_ind = get_cox_results(ipd_ind, ipd_ab)
         cox_df.at[i, 'p_ind'] = p
         cox_df.at[i, 'HR_ind'] = hr
         cox_df.at[i, 'HRlower_ind'] = hr_lower_ind
         cox_df.at[i, 'HRupper_ind'] = hr_upper_ind
     
     # assign model
-    cox_df.loc[:, 'Model'] = ""
     cond_add = (cox_df['HRupper_ind'] < 1) & (
         cox_df['HRlower_add'] <= 1) & (cox_df['HRupper_add'] >= 1)
     cond_ind = (cox_df['HRlower_add'] > 1) & (
@@ -112,7 +117,7 @@ def main():
     indf = pd.read_csv('../data/trials/final_input_list_with_seed.txt', sep='\t')
     cox_df = cox_ph_test(indf)
     results = pd.concat([indf, cox_df], axis=1)
-    results.to_csv(INDIR + 'cox_ph_test.csv', index=False)
+    results.to_csv(INDIR + 'cox_ph_test_new_version.csv', index=False)
 
 if __name__ == '__main__':
     main()
