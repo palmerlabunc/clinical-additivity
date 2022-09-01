@@ -6,8 +6,20 @@ sys.path.insert(0, '..')
 from experimental_correlation import get_pdx_corr_data, get_ctrp_corr_data
 
 
-def draw_corr_pdx(df, drug1, drug2, metric='BestAvgResponse'):
-    tmp = get_pdx_corr_data(df, drug1, drug2, metric=metric)
+def draw_corr_pdx(df, tumor_types, drug1, drug2, metric='BestAvgResponse'):
+    """Plot scatterplot of two drug responses and calculate spearmanr correlation.
+
+    Args:
+        df (pd.DataFrame): drug response data
+        tumor_types (pd.DataFrame): tumor type data
+        drug1 (str): name of drug 1
+        drug2 (str): name of drug 2
+        metric (str, optional): drug response metrics. Defaults to 'BestAvgResponse'.
+
+    Returns:
+        plt.figure: plotted figure
+    """    
+    tmp = get_pdx_corr_data(df, tumor_types, drug1, drug2, metric=metric)
     r, p = spearmanr(tmp[drug1], tmp[drug2])
     fig, ax = plt.subplots(figsize=(2, 2))
 
@@ -32,6 +44,17 @@ def draw_corr_pdx(df, drug1, drug2, metric='BestAvgResponse'):
 
 
 def draw_ctrp_spearmanr_distribution(all_pairs, cyto_pairs, targ_pairs, cyto_targ_pairs):
+    """Plot histograms (distributions) of spearmanr correlations between CTRPv2 drug pairs.
+
+    Args:
+        all_pairs (np.ndarray): 1-D array of pairwise correlation values between all drug pairs
+        cyto_pairs (np.ndarray): 1-D array of pairwise correlation values between cytotoxic drug pairs
+        targ_pairs (np.ndarray): 1-D array of pairwise correlation values between targeted drug pairs
+        cyto_targ_pairs (np.ndarray): 1-D array of pairwise correlation values between cytotoxic and targted drugs
+
+    Returns:
+        plt.figure: plotted figure
+    """    
     fig, ax = plt.subplots(figsize=(3, 2), dpi=300)
 
     sns.despine()
@@ -49,6 +72,20 @@ def draw_ctrp_spearmanr_distribution(all_pairs, cyto_pairs, targ_pairs, cyto_tar
 
 def draw_corr_cell(ctrp_df, cancer_type, drug1, drug2, 
                    metric='CTRP_AUC', only_cancer_type=None):
+    """Plot scatterplot of two drug responses and calculate spearmanr correlation.
+
+    Args:
+        ctrp_df (pd.DataFrame): CTRPv2 viability data
+        cancer_type (pd.Series): cancer type information
+        drug1 (str): name of drug 1
+        drug2 (str): name of drug 2
+        metric (str, optional): drug response metric. Defaults to 'CTRP_AUC'.
+        only_cancer_type (str, optional): Specific cancer type to use. 
+            Default uses all cancer types where the drug is active. Defaults to None.
+
+    Returns:
+        plt.figure: plotted figure
+    """    
     dat = get_ctrp_corr_data(ctrp_df, cancer_type, drug1, drug2, metric)
     if only_cancer_type is not None:
         dat = dat[dat['Cancer_Type_HH'] == only_cancer_type]

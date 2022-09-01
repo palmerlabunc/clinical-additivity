@@ -70,7 +70,7 @@ def set_figsize(scale, rows, cols, spacing_width_scale=0.2, spacing_height_scale
 
 
 def get_model_colors():
-    """Returns preset colors for 
+    """Returns preset colors for trial arms.
 
     Returns:
         dict: color dictionary
@@ -78,7 +78,6 @@ def get_model_colors():
     # define colors
     blue = [i/255 for i in (0, 128, 255)]  # hsa
     red = [i/255 for i in (200, 0, 50)]  # additivity
-    orange = [i/255 for i in (255, 219, 40)]  # control
 
-    color_dict = {'HSA': blue, 'additive': red, 'control': orange, 'experimental': 'green', 'combo': 'black'}
+    color_dict = {'HSA': blue, 'additive': red, 'control': 'orange', 'experimental': 'green', 'combo': 'black'}
     return color_dict

@@ -1,9 +1,5 @@
-from re import L
 import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
-import seaborn as sns
-from scipy.stats import spearmanr
 from itertools import combinations
 
 
@@ -87,10 +83,10 @@ def prepare_ctrp_agg_data(drug_info):
         drug_info (pd.DataFrame): drug info data
 
     Returns:
-        np.array: array of correltion values between all drug pairs
-        np.array: array of correltion values between cytotoxic drug pairs
-        np.array: array of correltion values between targeted drug pairs
-        np.array: array of correltion values between cytotoxic-targeted drug pairs
+        np.array: array of correlation values between all drug pairs
+        np.array: array of correlation values between cytotoxic drug pairs
+        np.array: array of correlation values between targeted drug pairs
+        np.array: array of correlation values between cytotoxic-targeted drug pairs
     """
     indir = '../data/experimental/'
     df = pd.read_csv(
@@ -189,28 +185,40 @@ def prepare_ctrp_agg_data(drug_info):
 
 
 def import_pdx_data():
-    """_summary_
-    """
+    """Import Gao et al. (2015) PDX suppl. data.
+
+    Returns:
+        (pd.DataFrame, pd.DataFrame): a tuple of drug response dataframe and cancer type info dataframe.
+    """    
     indir = '../data/experimental/'
-    info = pd.read_excel(indir + 'suppl_table.xlsx',
+    info = pd.read_excel(indir + 'Gao2015_suppl_table.xlsx',
                          sheet_name='PCT raw data',
                          engine='openpyxl', dtype=str)
 
-    dat = pd.read_excel(indir + 'suppl_table.xlsx',
+    dat = pd.read_excel(indir + 'Gao2015_suppl_table.xlsx',
                         sheet_name='PCT curve metrics',
                         engine='openpyxl', dtype=str)
 
     info = info[['Model', 'Tumor Type', 'Treatment']].drop_duplicates()
-    drugs = ['trastuzumab', 'cetuximab', 'LEE011', 'BYL719', 'tamoxifen', 'paclitaxel', 'abraxane',
-             'gemcitabine-50mpk', '5FU', 'dacarbazine', 'binimetinib', 'encorafenib']
-
     info = info.sort_values('Tumor Type')
     tumor_types = info[['Model', 'Tumor Type']
                        ].drop_duplicates().set_index('Model').iloc[:-1, :]
-    return dat, tumor_types
+    return (dat, tumor_types)
 
 
 def get_pdx_corr_data(df, tumor_types, drug1, drug2, metric='BestAvgResponse'):
+    """Prepare data to calculate correlation between drug response to drug1 and 2.
+
+    Args:
+        df (pd.DataFrame): drug response data
+        tumor_types (pd.DataFrame): tumor type dataframe (model, tumor type info)
+        drug1 (str): name of drug 1
+        drug2 (str): name of drug 2
+        metric (str, optional): drug response metric. Defaults to 'BestAvgResponse'.
+
+    Returns:
+        pd.DataFrame: 
+    """    
     a = df[df['Treatment'] == drug1].set_index('Model')[metric].astype(float)
     b = df[df['Treatment'] == drug2].set_index('Model')[metric].astype(float)
     merged = pd.concat([a, b, tumor_types], axis=1, join='inner')
@@ -218,26 +226,4 @@ def get_pdx_corr_data(df, tumor_types, drug1, drug2, metric='BestAvgResponse'):
     return merged
 
 
-def draw_corr(df, drug1, drug2, metric='BestAvgResponse'):
-    tmp = get_pdx_corr_data(df, drug1, drug2, metric=metric)
-    r, p = spearmanr(tmp[drug1], tmp[drug2])
-    fig, ax = plt.subplots(figsize=(2, 2))
 
-    a = df[df['Treatment'] == drug1]['ResponseCategory'] == 'PD'
-    b = df[df['Treatment'] == drug2]['ResponseCategory'] == 'PD'
-    if metric == 'BestAvgResponse':
-        ax.axvline(0, color='gray', linestyle='--')
-        ax.axhline(0, color='gray', linestyle='--')
-        if (a.sum() / a.shape[0] > 0.75) or (b.sum() / b.shape[0] > 0.75):
-            print("WARNING: at least one of the drug is inactive!")
-    tumor = tmp['Tumor Type'].unique()
-    if tumor.size > 1:
-        sns.scatterplot(x=drug1, y=drug2, hue='Tumor Type', data=tmp, ax=ax)
-        ax.set_title('n={0} rho={1:.2f}'.format(tmp.shape[0], r))
-    else:
-        sns.scatterplot(x=drug1, y=drug2, data=tmp, ax=ax)
-        ax.set_title('{0} n={1} rho={2:.2f}'.format(tumor[0], tmp.shape[0], r))
-    ax.set_xlabel(drug1 + ' ({})'.format(metric))
-    ax.set_ylabel(drug2 + ' ({})'.format(metric))
-
-    return (fig, ax)

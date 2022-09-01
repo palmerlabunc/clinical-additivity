@@ -3,12 +3,21 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 import matplotlib.ticker as plticker
-from .plot_utils import import_input_data, get_model_colors, set_figsize
+from .plot_utils import get_model_colors, import_input_data_include_suppl
 import warnings
 warnings.filterwarnings("ignore")
 
 
-def set_tmax(df_a, df_b, df_ab):
+def set_tmax(df_a, df_b):
+    """Set maximum follow-up time.
+
+    Args:
+        df_a (pd.DataFrame): survival data of drug A (experimental)
+        df_b (pd.DataFrame): survival data of drug B (control)
+
+    Returns:
+        float: maximum follow-up time
+    """    
     if df_a.at[0, 'Survival'] < 5 and df_b.at[0, 'Survival'] < 5:
         tmax = max(df_a.at[0, 'Time'], df_b.at[0, 'Time'])
     else:
@@ -17,6 +26,14 @@ def set_tmax(df_a, df_b, df_ab):
 
 
 def make_label(name):
+    """Format file name to '{Cancer type} {Drugs}\n{Author} et al. {Year}' for figure label.
+
+    Args:
+        name (str): input file prefix in the format of '{Cancer}_{Drug}_{Author}{Year}_PFS'
+
+    Returns:
+        str: formatted label
+    """
     tokens = name.split('_')
     cancer = tokens[0]
     drugA, drugB = tokens[1].split('-')
@@ -25,10 +42,24 @@ def make_label(name):
 
 
 def plot_survivals(df_control, df_exp, df_combo, df_add, df_ind, ax, label=None):
+    """Helper function to plot survival curves. Plots survival on Axes object.
+
+    Args:
+        df_control (pd.DataFrame): control drug survival data
+        df_exp (pd.DataFrame): exerimental drug survival data
+        df_combo (pd.DataFrame): combination survival data
+        df_add (pd.DataFrame): additivity survival data
+        df_ind (pd.DataFrame): HSA survival data
+        ax (plt.axes): axes to plot the survival curves on
+        label (str, optional): _description_. Defaults to None.
+
+    Returns:
+        plt.axes: plotted axes
+    """    
     ticks = [0, 50, 100]
     color_dict = get_model_colors()
     # set same max time
-    tmax = set_tmax(df_exp, df_control, df_combo)
+    tmax = set_tmax(df_exp, df_control)
 
     ### plot
     ax.plot(df_control['Time'], df_control['Survival'],
@@ -51,16 +82,77 @@ def plot_survivals(df_control, df_exp, df_combo, df_add, df_ind, ax, label=None)
 
 
 def plot_additivity_suppl():
-    indir, cox_df = import_input_data()
-    rows, cols = 6, 3
-    fig, axes = plt.subplots(rows, cols, sharey=True, 
-                             figsize=(8, 4), subplot_kw=dict(box_aspect=0.5), dpi=300)
-    
+    indir, cox_df = import_input_data_include_suppl()
     tmp = cox_df[(cox_df['Model'] == 'additive') |
                  (cox_df['Model'] == 'synergy')]
 
     # sort by cancer types
     tmp = tmp.sort_values(by=['Model', 'Combination'],
-                        ascending=[False, True]).reset_index()
-    
-    
+                          ascending=[False, True]).reset_index()
+
+    rows, cols = 6, 3
+    fig, axes = plt.subplots(rows, cols, sharey=True, 
+                             figsize=(7, 10), subplot_kw=dict(box_aspect=0.5), dpi=300)
+    sns.despine()
+    flat_axes = axes.flatten()
+
+    for i in range(tmp.shape[0]):
+        name_a = tmp.at[i, 'Experimental']
+        name_b = tmp.at[i, 'Control']
+        name_ab = tmp.at[i, 'Combination']
+        path = tmp.at[i, 'Path'] + '/'
+
+        # import data
+        obs_ab = pd.read_csv(path + name_ab + '.clean.csv')
+        obs_exp = pd.read_csv(path + name_a + '.clean.csv')
+        obs_ctrl = pd.read_csv(path + name_b + '.clean.csv')
+        independent = pd.read_csv(
+            indir + '{0}-{1}_combination_predicted_ind.csv'.format(name_a, name_b))
+        additive = pd.read_csv(
+            indir + '{0}-{1}_combination_predicted_add.csv'.format(name_a, name_b))
+
+        plot_survivals(obs_ctrl, obs_exp, obs_ab, additive,
+                    independent, flat_axes[i], label=name_ab)
+
+    return fig
+
+
+def plot_between_hsa_suppl():
+    indir, cox_df = import_input_data_include_suppl()
+    tmp1 = cox_df[(cox_df['Model'] == 'between')]
+    # sort by cancer types
+    tmp1 = tmp1.sort_values('Combination').reset_index(drop=True)
+
+    tmp2 = cox_df[(cox_df['Model'] == 'independent') | (
+        cox_df['Model'] == 'worse than independent')]
+    # sort by cancer types
+    tmp2 = tmp2.sort_values(['Model', 'Combination'], ascending=[
+                            True, True]).reset_index(drop=True)
+    tmp = pd.concat([tmp1, tmp2], axis=0).reset_index(drop=True)
+
+    rows, cols = 8, 3
+
+    fig, axes = plt.subplots(rows, cols, sharey=True, figsize=(7, 13), 
+                             subplot_kw=dict(box_aspect=0.5), dpi=300)
+    sns.despine()
+    flat_axes = axes.flatten()
+
+    for i in range(tmp.shape[0]):
+        name_a = tmp.at[i, 'Experimental']
+        name_b = tmp.at[i, 'Control']
+        name_ab = tmp.at[i, 'Combination']
+        path = tmp.at[i, 'Path'] + '/'
+
+        # import data
+        obs_ab = pd.read_csv(path + name_ab + '.clean.csv')
+        obs_exp = pd.read_csv(path + name_a + '.clean.csv')
+        obs_ctrl = pd.read_csv(path + name_b + '.clean.csv')
+        independent = pd.read_csv(
+            indir + '{0}-{1}_combination_predicted_ind.csv'.format(name_a, name_b))
+        additive = pd.read_csv(
+            indir + '{0}-{1}_combination_predicted_add.csv'.format(name_a, name_b))
+
+        plot_survivals(obs_ctrl, obs_exp, obs_ab, additive,
+                    independent, flat_axes[i], label=name_ab)
+
+    return fig

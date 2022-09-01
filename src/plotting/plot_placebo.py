@@ -6,29 +6,58 @@ warnings.filterwarnings("ignore")
 
 
 def make_label(name):
+    """Format file name to '{Cancer type} {Author} et al. {Year}' for figure label.
+
+    Args:
+        name (str): input file prefix in the format of '{Cancer}_{Drug}_{Author}{Year}_PFS'
+
+    Returns:
+        str: formatted label
+    """    
     tokens = name.split('_')
     cancer = tokens[0]
     author, year = tokens[2][:-4], tokens[2][-4:]
-    return f"{cancer} Cancer \n({author} et al. {year})"
+    return f"{cancer} Cancer\n({author} et al. {year})"
 
 
 def plot_one_placebo(df, scan_time, ax, label=None):
-    ticks = [0, 50, 100]
+    """ Plot one placebo curve to an axes object.
+
+    Args:
+        df (pd.DataFrame): input survival data
+        scan_time (float): first scan time in months
+        ax (plt.axes): axes to plot the data
+        label (str, optional): axes title. Defaults to None.
+
+    Returns:
+        plt.axes: plotted axes
+    """    
+    xticks = [0, 6, 12]
+    yticks = [0, 50, 100]
 
     ### plot
     ax.plot(df['Time'], df['Survival'], linewidth=1, color='k')
     ax.axvline(scan_time, color='r', linewidth=1)
     ax.set_title(make_label(label))
     ax.set_xlabel('')
+    ax.set_xlim(0, 13)
     ax.set_ylim(0, 105)
-    ax.set_yticks(ticks)
-    #ax.xaxis.set_major_locator(plticker.MultipleLocator(6))
+    ax.set_xticks(xticks)
+    ax.set_yticks(yticks)
+    #FIXME set x ticks
+    ax.xaxis.set_major_locator(plt.MultipleLocator(6))
+    ax.xaxis.set_minor_locator(plt.MultipleLocator(2))
     #ax.axes.xaxis.set_ticklabels([])
 
     return ax
 
 
 def plot_placebo():
+    """Plot all placebo curves in one figure.
+
+    Returns:
+        plt.figure: plotted figure of all placebo survival curves 
+    """    
     indf = pd.read_csv('../data/placebo/placebo_input_list.txt', sep='\t', header=0)
     rows, cols = 3, 3
     fig, axes = plt.subplots(rows, cols, sharey=True, 
