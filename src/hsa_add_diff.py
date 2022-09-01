@@ -6,6 +6,13 @@ from plotting.plot_utils import import_input_data
 
 
 def hsa_add_diff():
+    """Compute difference between additivity and HSA by calculating
+    normalized difference between the two curves and performing
+    Cox-PH model between the two survival curves for each combination.
+
+    Returns:
+        pd.DataFrame: difference between HSA and additivity
+    """    
     indir, cox_df = import_input_data()
     diff_df = pd.DataFrame(index=cox_df.index, columns=[
                            'HSA - Control', 'Additivity - HSA',

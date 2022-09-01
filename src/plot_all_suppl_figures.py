@@ -2,18 +2,22 @@ from pathlib import Path
 from experimental_correlation import import_ctrp_data, import_pdx_data, prepare_ctrp_agg_data
 from hsa_add_diff import hsa_add_diff
 from lognormal_fitting import fit_lognormal
+from lognormal_examples import get_lognormal_examples
+from predict_success import predict_success, calc_correlation
 from plotting.plot_placebo import plot_placebo
 from plotting.plot_experimental_correlation import draw_corr_cell, draw_corr_pdx, draw_ctrp_spearmanr_distribution
 from plotting.plot_concept_figure import plot_concept_figure
 from plotting.plot_hsa_add_diff import plot_hsa_add_diff_vs_lognormal, reg_hsa_add_diff_vs_lognormal
-
+from plotting.plot_survival_curves_suppl import plot_additivity_suppl, plot_between_hsa_suppl
+from plotting.plot_predict_success import plot_predict_success
+from plotting.plot_lognormal_examples import plot_lognormal_examples
 #FIXME figure numbers are subject to change
 
 def suppl_fig1(outdir):
     """Generate and export all placebo/BSC survival distributions (suppl fig.1)
 
     Args:
-        outdir (str): filepath to output directory
+        outdir (str): file path to output directory
     """
     fig = plot_placebo()
     fig.savefig(outdir + 'suppl_fig1_placebo_curves.pdf')
@@ -24,7 +28,7 @@ def suppl_fig2(outdir):
     Each panel will be exported to a separate figure.
 
     Args:
-        outdir (str): filepath to output directory
+        outdir (str): file path to output directory
     """    
     # use PDX data (PDXE)
     pdx_df, tumor_types = import_pdx_data()
@@ -60,7 +64,7 @@ def suppl_fig3(outdir):
     our model of clinical drug additivity.
 
     Args:
-        outdir (str): filepath to output directory
+        outdir (str): file path to output directory
     """    
     fig = plot_concept_figure()
     fig.savefig(outdir + 'suppl_fig3_concept_figure.pdf')
@@ -68,7 +72,7 @@ def suppl_fig3(outdir):
 
 def suppl_fig4(outdir):
     """Generate and export figure about explaining why lognormal fit sigma vs. 
-    difference between HSA and additivity. (suppl fig.3)
+    difference between HSA and additivity. (suppl fig.4)
 
     Args:
         outdir (str): filepath to output directory
@@ -81,15 +85,62 @@ def suppl_fig4(outdir):
     fig.savefig(outdir + 'suppl_fig4_hsa_additivity_sigma.pdf')
 
 
+def suppl_fig5(outdir):
+    """Generate and export extended survival curves of both monotherapies, 
+    combination, predicted additivity, and HSA. (suppl fig.5)
+
+    Args:
+        outdir (str): file path to output directory
+    """    
+    fig_add = plot_additivity_suppl()
+    fig_add.savefig(outdir +  'suppl_fig5_additive_survival.pdf',
+                    bbox_inches='tight', pad_inches=0.1)
+    fig_ind = plot_between_hsa_suppl()
+    fig_ind.savefig(outdir + 'suppl_fig5_between_hsa_survival.pdf',
+                    bbox_inches='tight', pad_inches=0.1)
+
+
+def suppl_fig6(outdir):
+    """Generate and export plots showing how variability in monotherapy responses 
+    affect the HSA and additivity predictions. (suppl fig.6)
+    A) lognormal survival curve examples
+    B) Generate and export scatterplot of HR(obs combo vs. exp combo) vs.
+    HR(exp combo vs. exp combo). Calcuate pearsonr between the two values.
+
+    Args:
+        outdir (str): file path to output directory
+    """    
+    # Panel A
+    less_variable = get_lognormal_examples(20, 500, 2, 2.2, 0.5)
+    more_variable = get_lognormal_examples(20, 500, 1, 1.5, 2)
+    fig = plot_lognormal_examples(less_variable, more_variable)
+    fig.savefig(outdir + 'suppl_fig6_explain_HSA_additive_difference.pdf')
+    # Panel B
+    results = predict_success()
+    r_hsa, p_hsa = calc_correlation('HSA', results)
+    r_add, p_add = calc_correlation('additivity', results)
+    print("r_hsa={0:.02f}, p_hsa={1:.03f}, r_add={2:.02f}, p_add={3:.03f}".format(r_hsa, p_hsa, r_add, p_add))
+    fig = plot_predict_success(results)
+    fig.savefig(outdir + 'suppl_fig6_HR_combo_control_scatterplot.pdf', 
+                bbox_inches='tight')
+
+
 def main():
     outdir = '../figures/'
     new_directory = Path(outdir)
     new_directory.mkdir(parents=True, exist_ok=True)
-
+    #print("1")
     #suppl_fig1(outdir)
+    #print("2")
     #suppl_fig2(outdir)
+    #print("3")
     #suppl_fig3(outdir)
-    suppl_fig4(outdir)
+    #print("4")
+    #suppl_fig4(outdir)
+    #print("5")
+    #suppl_fig5(outdir)
+    print("6")
+    suppl_fig6(outdir)
 
 
 if __name__ == '__main__':
