@@ -30,6 +30,16 @@ def plot_hsa_add_diff_vs_lognormal(lognorm_df, diff_df):
 
 
 def reg_hsa_add_diff_vs_lognormal(lognorm_df, diff_df):
+    """Perform linear regression between average standard deviation
+    of log-normal fit vs. HR(additivity vs. HSA).
+
+    Args:
+        lognorm_df (pd.DataFrame): log-normal parameters of combinations
+        diff_df (pd.DataFrame): HSA additivity difference
+
+    Returns:
+        LinregressResult: contains slope, intercept, rvalue, pvalue
+    """    
     avg_sigma = np.sqrt((lognorm_df['sigma_a']**2 + lognorm_df['sigma_b']**2)/2)
     reg = linregress(avg_sigma, diff_df['HR'])
     return reg

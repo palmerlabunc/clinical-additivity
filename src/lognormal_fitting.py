@@ -6,15 +6,39 @@ from plotting.plot_utils import import_input_data
 
 
 def lognormal_survival(x, mu, sigma):
+    """Compute log-normal survival distribution/
+
+    Args:
+        x (np.ndarray): x values
+        mu (float): mean of the log-normal distribution
+        sigma (flaot): standard deviation of the log-normal distribution
+
+    Returns:
+        np.ndarray: 1-D array of survival distribution (y values)
+    """    
     y = (1 - norm.cdf((np.log(x) - mu)/sigma))
     return y
 
 
 def mse(pred, true):
+    """Compute mean squared error between pred and true.
+
+    Args:
+        pred (np.ndarray): 1-D array of prediction values
+        true (np.ndarray): 1-D array of true values
+
+    Returns:
+        flaot: mean squared error
+    """    
     return np.mean(np.power(pred - true, 2))
 
 
 def fit_lognormal():
+    """Fit log-normal distribution to each monotherapy survival curves.
+
+    Returns:
+        pd.DataFrame: fitted parameters
+    """    
     indir, cox_df = import_input_data()
     lognorm_df = pd.DataFrame(index=cox_df.index, 
                               columns=['mu_a', 'sigma_a', 'mse_a', 'mu_b', 'sigma_b', 'mse_b'])
