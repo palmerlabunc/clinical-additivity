@@ -1,10 +1,22 @@
 from pathlib import Path
+from plotting.plot_doses_difference import plot_doses_difference
 from plotting.all_survival_qqplot import plot_all_survival_qqplot, qqplot_legends
 from plotting.forest_plot import forest_plot
 from plotting.r2_msd_histogram import plot_r2_histogram, plot_msd_histogram
 from plotting.subgroup_boxplots import plot_ici_boxplot, plot_angio_boxplot, plot_mono_approval_boxplot, plot_HR_boxplot
 from plotting.plot_survival_curves import plot_additive_survival, plot_between_survival, plot_hsa_survival
 from plotting.forest_plot import forest_plot
+
+def figure1(outdir):
+    """Generate and export doses difference between monotherapy
+    and combination trials.
+
+    Args:
+        outdir (str): output directory
+    """    
+    # Figure 1B
+    fig = plot_doses_difference()
+    fig.savefig(outdir + 'fig1b_doses_diffence.pdf')
 
 
 def figure2(outdir):
@@ -84,8 +96,9 @@ def main():
     new_directory = Path(outdir)
     new_directory.mkdir(parents=True, exist_ok=True)
 
-    figure2(outdir)
-    figure3(outdir)
+    #figure1(outdir)
+    #figure2(outdir)
+    #figure3(outdir)
     figure4(outdir)
 
 
