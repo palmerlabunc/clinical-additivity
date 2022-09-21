@@ -23,7 +23,7 @@ def plot_hsa_add_diff_vs_lognormal(lognorm_df, diff_df):
     sns.regplot('sigma_avg', 'HR', data=results, scatter_kws={"s": 7}, ax=ax)
     ax.set_xlabel(r'$\bar{\sigma}$')
     ax.set_ylabel('HR(additivity vs. HSA)')
-    ax.set_xticks([1, 1.5, 2])
+    ax.set_xticks([0.5, 1, 1.5, 2])
     ax.set_yticks([0.6, 0.8, 1])
 
     return fig

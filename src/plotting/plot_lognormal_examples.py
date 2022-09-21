@@ -55,7 +55,7 @@ def plot_lognormal_examples(less_variable, more_variable):
 
     for i in range(2):
         for k in range(2):
-            axes[i, k].set_xlim(0,19)
+            axes[i, k].set_xlim(0, 19)
             axes[i, k].set_xticks([0, 5, 10, 15])
             axes[i, k].set_ylim(0, 105)
 
