@@ -36,7 +36,8 @@ def preprocess_survival_data(filepath):
     """
     filepath = os.path.expanduser(filepath)
     with open(filepath, 'r') as f:
-        cols = len(f.readline().split(','))
+        tokens = f.readline().strip().split(',')
+        cols = len(tokens)
     if cols == 2:
         df = pd.read_csv(filepath, header=0)
         # change column names
@@ -115,14 +116,14 @@ def preprocess_placebo():
     for i in range(indf.shape[0]):
         path = indf.at[i, 'Path'] + '/'
         name = indf.at[i, 'File prefix']
+        print(name)
         new = preprocess_survival_data(path + name + '.csv')
         new.round(5).to_csv(path + name + '.clean.csv', index=False)
-        print(path)
 
 
 def main():
     #sanity_check_everything()
-    preprocess_everything()
+    #preprocess_everything()
     preprocess_placebo()
 
 
