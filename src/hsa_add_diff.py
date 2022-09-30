@@ -40,7 +40,7 @@ def hsa_add_diff():
         ipd_ind = create_ipd(independent, n=n)
 
         # set up data for Cox regress
-        p, hr, hr_lower, hr_upper = get_cox_results(ipd_ind, ipd_add)
+        p, hr, hr_lower, hr_upper = get_cox_results(ipd_add, ipd_ind)
         diff_df.at[i, 'p'] = p
         diff_df.at[i, 'HR'] = hr
         diff_df.at[i, 'HRlower'] = hr_lower

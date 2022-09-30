@@ -148,12 +148,12 @@ def main():
     #print("3")
     #suppl_fig3(outdir)
     #print("4")
-    #suppl_fig4(outdir)
+    suppl_fig4(outdir)
     #print("5")
     #suppl_fig5(outdir)
     #print("6")
     #suppl_fig6(outdir)
-    suppl_fig7(outdir)
+    #suppl_fig7(outdir)
 
 
 
