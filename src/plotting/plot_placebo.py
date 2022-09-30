@@ -44,10 +44,8 @@ def plot_one_placebo(df, scan_time, ax, label=None):
     ax.set_ylim(0, 105)
     ax.set_xticks(xticks)
     ax.set_yticks(yticks)
-    #FIXME set x ticks
     ax.xaxis.set_major_locator(plt.MultipleLocator(6))
     ax.xaxis.set_minor_locator(plt.MultipleLocator(2))
-    #ax.axes.xaxis.set_ticklabels([])
 
     return ax
 
