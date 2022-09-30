@@ -7,10 +7,11 @@ from predict_success import predict_success, calc_correlation
 from plotting.plot_placebo import plot_placebo
 from plotting.plot_experimental_correlation import draw_corr_cell, draw_corr_pdx, draw_ctrp_spearmanr_distribution
 from plotting.plot_concept_figure import plot_concept_figure
-from plotting.plot_hsa_add_diff import plot_hsa_add_diff_vs_lognormal, reg_hsa_add_diff_vs_lognormal
+from plotting.plot_hsa_add_diff import plot_hsa_add_diff_vs_lognormal, corr_hsa_add_diff_vs_lognormal
 from plotting.plot_survival_curves_suppl import plot_additivity_suppl, plot_between_hsa_suppl
 from plotting.plot_predict_success import plot_predict_success
 from plotting.plot_lognormal_examples import plot_lognormal_examples
+from plotting.plot_CDK46_ER import plot_abema_vs_palbo
 #FIXME figure numbers are subject to change
 
 def suppl_fig1(outdir):
@@ -79,8 +80,8 @@ def suppl_fig4(outdir):
     """
     lognorm_df = fit_lognormal()
     diff_df = hsa_add_diff()
-    results = reg_hsa_add_diff_vs_lognormal(lognorm_df, diff_df)
-    print(f'pearsonr={results.rvalue}\nslope={results.slope}\npvalue={results.pvalue}')
+    r, p = corr_hsa_add_diff_vs_lognormal(lognorm_df, diff_df)
+    print(f'pearsonr={r}\npvalue={p}')
     fig = plot_hsa_add_diff_vs_lognormal(lognorm_df, diff_df)
     fig.savefig(outdir + 'suppl_fig4_hsa_additivity_sigma.pdf')
 
@@ -125,6 +126,17 @@ def suppl_fig6(outdir):
                 bbox_inches='tight')
 
 
+def suppl_fig7(outdir):
+    """Generate and export plot comparing abemaciclib vs. palbociclib.
+
+    Args:
+        outdir (str): file path to output directory
+    """    
+    fig = plot_abema_vs_palbo()
+    fig.savefig(outdir + 'suppl_fig7_Abemaciclib_vs_Palbociclib.pdf',
+                bbox_inches='tight')
+
+
 def main():
     outdir = '../figures/'
     new_directory = Path(outdir)
@@ -139,8 +151,10 @@ def main():
     #suppl_fig4(outdir)
     #print("5")
     #suppl_fig5(outdir)
-    print("6")
-    suppl_fig6(outdir)
+    #print("6")
+    #suppl_fig6(outdir)
+    suppl_fig7(outdir)
+
 
 
 if __name__ == '__main__':
