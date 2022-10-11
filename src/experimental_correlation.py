@@ -226,4 +226,16 @@ def get_pdx_corr_data(df, tumor_types, drug1, drug2, metric='BestAvgResponse'):
     return merged
 
 
+def get_all_pairs_95_range():
+    cell_info, drug_info, cancer_type, ctrp = import_ctrp_data()
+    all_pairs, cyto_pairs, targ_pairs, cyto_targ_pairs = prepare_ctrp_agg_data(drug_info)
+    return np.round(np.quantile(all_pairs, [0.025, 0.975]), 2)
 
+
+def main():
+    range95 = get_all_pairs_95_range()
+    print(range95)
+
+
+if __name__ == '__main__':
+    main()
