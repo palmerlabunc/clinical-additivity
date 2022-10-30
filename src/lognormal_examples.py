@@ -18,7 +18,7 @@ def get_lognorm_survival_dataframe(tmax, n, mu, sigma):
     timepoints = np.linspace(0, tmax, n)
     survpoints = lognormal_survival(timepoints, mu, sigma) * 100
     df = pd.DataFrame({'Time': timepoints, 'Survival': survpoints})
-    return df
+    return df.iloc[::-1]
 
 
 def get_lognormal_examples(tmax, n, mu_a, mu_b, sigma, rho=0.3):
@@ -38,7 +38,7 @@ def get_lognormal_examples(tmax, n, mu_a, mu_b, sigma, rho=0.3):
     """    
     drugA = get_lognorm_survival_dataframe(tmax, n, mu_a, sigma)
     drugB = get_lognorm_survival_dataframe(tmax, n, mu_b, sigma)
-    hsa, add = predict_both(drugA, drugB, 'Drug A', 'DrugB', 'a', 1, rho=rho)
+    hsa, add = predict_both(drugA, drugB, 'Drug A', 'DrugB', 'a', 1, rho=rho, N=500)
     hsa = hsa.append({'Time': 0, 'Survival': 100}, ignore_index=True)
     add = add.append({'Time': 0, 'Survival': 100}, ignore_index=True)
     return {'A': drugA, 'B': drugB, 'HSA': hsa, 'Additivity': add}
