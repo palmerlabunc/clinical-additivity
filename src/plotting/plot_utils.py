@@ -70,7 +70,7 @@ def set_figsize(scale, rows, cols, spacing_width_scale=0.2, spacing_height_scale
 
 
 def get_model_colors():
-    """Returns preset colors for trial arms.
+    """Returns preset colors for trial arms. Keywords are HSA, additive, control, experimental, and combo.
 
     Returns:
         dict: color dictionary

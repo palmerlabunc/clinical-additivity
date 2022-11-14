@@ -122,8 +122,8 @@ def preprocess_placebo():
 
 
 def main():
-    #sanity_check_everything()
-    #preprocess_everything()
+    sanity_check_everything()
+    preprocess_everything()
     preprocess_placebo()
 
 

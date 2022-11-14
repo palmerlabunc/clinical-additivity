@@ -1,5 +1,7 @@
 .DS_Store
 data/
 figures/
-src/__pycache__
-src/plotting/__pycache__
+analysis/
+src/__pycache__/
+src/plotting/__pycache__/
+
