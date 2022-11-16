@@ -6,6 +6,8 @@ from utils import interpolate
 INDIR = '../data/PFS_predictions/'
 
 def create_ipd(df, n=500):
+    #FIXME works fine as is, but can be problematic if you don't preprocess the additiivty
+    # and HSA predictions that the survival curves go down to zero (which is misleading)
     """Creates individual patient data (IPD) for a given survival curve.
     The survival curve is broken into n equal survival intervals. All events are considered
     as failed before the end of follow-up. All events after follow-up are considered
