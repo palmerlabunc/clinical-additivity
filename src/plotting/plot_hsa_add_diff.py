@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import matplotlib.ticker as plticker
 import seaborn as sns
 from scipy.stats import linregress, pearsonr
+from plot_utils import import_input_data, interpolate, get_model_colors
 
 
 def plot_hsa_add_diff_vs_lognormal(lognorm_df, diff_df):
@@ -67,3 +68,48 @@ def corr_hsa_add_diff_vs_lognormal(lognorm_df, diff_df):
         (lognorm_df['sigma_a']**2 + lognorm_df['sigma_b']**2)/2)
     r, p = pearsonr(avg_sigma, np.log(diff_df['HR']))
     return r, p
+
+
+def hsa_add_contribution_stacked_barplot():
+    diff_df = pd.read_csv('../analysis/additivity_HSA_similarity/difference.csv').round(5)
+    less_than_HSA = diff_df['Combo - Control'] < diff_df['HSA - Control'] 
+    less_than_Add = diff_df['Combo - Control'] < diff_df['Additivity - HSA'] + diff_df['HSA - Control']
+
+    # if less than HSA, plot Combo - Control instead of HSA - Control
+    print(diff_df.loc[less_than_HSA, 'Combination'])
+    diff_df.loc[less_than_HSA, 'HSA - Control'] = diff_df.loc[less_than_HSA, 'Combo - Control']
+    # if more than HSA and less than additivity, plot Combo - HSA instead of Additivity - HSA
+    diff_df.loc[less_than_Add, 'Additivity - HSA'] = diff_df.loc[less_than_Add, 'Combo - Control'] - diff_df.loc[less_than_Add, 'HSA - Control']
+    diff_df.loc[less_than_HSA, 'Additivity - HSA'] = 0
+    diff_df.loc[diff_df['Additivity - HSA'] < 0, 'Additivity - HSA'] = 0
+    # if more than additivity,
+    diff_df.loc[diff_df['Combo - Additivity'] < 0, 'Combo - Additivity'] = 0
+    color_dict = get_model_colors()
+    fig, ax = plt.subplots(figsize=(3, 2), constrained_layout=True)
+    sns.despine()
+    plot_df = diff_df.sort_values('Combo - Control')[['HSA - Control', 'Additivity - HSA', 'Combo - Additivity']]
+    print(diff_df.loc[plot_df.index, 'Combination'])
+    print(plot_df.mean())
+    plot_df.plot.bar(stacked=True, color=[color_dict['HSA'], color_dict['additive'], 'purple'], ax=ax)
+    ax.set_ylabel('Normalized Difference \nin Survival (%)')
+    ax.set_ylim(0, 50)
+    ax.set_xticks([])
+    ax.legend(loc='upper left')
+    fig.savefig('../figures/normalized_diff_in_survival.pdf')
+
+
+def hsa_add_contribution_stacked_barplot_test():
+    diff_df = pd.read_csv('../analysis/additivity_HSA_similarity/difference.csv').round(5)
+    fig, ax = plt.subplots(figsize=(3, 2), constrained_layout=True)
+    sns.despine()
+    diff_df.sort_values('Combo - Control')['Combo - Control'].plot.bar(ax=ax)
+    ax.set_ylabel('Normalized Difference \nin Survival (%)')
+    ax.set_ylim(0, 50)
+    ax.set_xticks([])
+    ax.legend(loc='upper left')
+    fig.savefig('../figures/normalized_diff_in_survival.test.pdf')
+
+
+if __name__ == '__main__':
+    hsa_add_contribution_stacked_barplot()
+    #hsa_add_contribution_stacked_barplot_test()
