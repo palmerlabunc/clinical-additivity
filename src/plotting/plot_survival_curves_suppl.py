@@ -69,8 +69,8 @@ def plot_survivals(df_control, df_exp, df_combo, df_add, df_ind, ax, label=None)
     ax.plot(df_combo['Time'], df_combo['Survival'], color=color_dict['combo'], linewidth=1.5)
     ax.plot(df_ind['Time'], df_ind['Survival'], color=color_dict['HSA'], linewidth=1.5)
     ax.plot(df_add['Time'], df_add['Survival'], color=color_dict['additive'], linewidth=1.5)
-
-    ax.set_title(make_label(label))
+    if label is not None:
+        ax.set_title(make_label(label))
     ax.set_xlabel('')
     ax.set_xlim(0, tmax - 0.5)
     ax.set_ylim(0, 105)
