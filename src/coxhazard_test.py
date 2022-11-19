@@ -48,7 +48,7 @@ def get_cox_results(ipd_base, ipd_test):
     return tuple(cph.summary.loc['Arm', ['p', 'exp(coef)', 'exp(coef) lower 95%', 'exp(coef) upper 95%']])
 
 
-def cox_ph_test(input_df):
+def cox_ph_test(input_df, pred_indir=None):
     tmp = input_df
     # output dataframe
     cox_df = pd.DataFrame(index=tmp.index, 
@@ -65,16 +65,23 @@ def cox_ph_test(input_df):
         df_a = pd.read_csv(path + tmp.at[i, 'Experimental'] + '.clean.csv').dropna()
         df_b = pd.read_csv(path + tmp.at[i, 'Control'] + '.clean.csv').dropna()
         df_ab = pd.read_csv(path + tmp.at[i, 'Combination'] + '.clean.csv').dropna()
+
         
         try:
             ipd_ab = pd.read_csv(path + tmp.at[i, 'Combination'] + '_indiv.csv')
             print("used IPD")
         except FileNotFoundError:
-            ipd_ab = create_ipd(df_ab, n=200)
+            if 'N_combo' in tmp.columns:
+                n = tmp.at[i, 'N_combo']
+            else:
+                n = 200
+            ipd_ab = create_ipd(df_ab, n=n)
 
         # import prediction
-        independent = pd.read_csv(INDIR + '{0}-{1}_combination_predicted_ind.csv'.format(name_a, name_b)).dropna()
-        additive = pd.read_csv(INDIR + '{0}-{1}_combination_predicted_add.csv'.format(name_a, name_b)).dropna()
+        if pred_indir is None:
+            pred_indir = INDIR
+        independent = pd.read_csv(pred_indir + '{0}-{1}_combination_predicted_ind.csv'.format(name_a, name_b)).dropna()
+        additive = pd.read_csv(pred_indir + '{0}-{1}_combination_predicted_add.csv'.format(name_a, name_b)).dropna()
 
         tmax = np.amin([df_ab['Time'].max(), independent['Time'].max(), df_a['Time'].max(), df_b['Time'].max()])
         independent = independent[independent['Time'] < tmax]
