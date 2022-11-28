@@ -4,8 +4,9 @@ import matplotlib.pyplot as plt
 import os
 from pathlib import Path
 from datetime import date
+import argparse
 
-def raw_import(filepath):
+def raw_import(filepath: str) -> pd.DataFrame:
     with open(filepath, 'r') as f:
         cols = len(f.readline().split(','))
     if cols == 2:
@@ -24,7 +25,7 @@ def raw_import(filepath):
     return df
 
 
-def preprocess_survival_data(filepath):
+def preprocess_survival_data(filepath: str) -> pd.DataFrame:
     """ Import survival data either having two columns (time, survival) or one
     column (time)
 
@@ -72,7 +73,7 @@ def preprocess_survival_data(filepath):
     return df
 
 
-def sanity_check_plot(ori, new, ax):
+def sanity_check_plot(ori: pd.DataFrame, new: pd.DataFrame, ax: plt.Axes) -> plt.Axes:
     ax.plot(ori['Time'],  ori['Survival'], linewidth=0.5)
     ax.plot(new['Time'],  new['Survival'], linewidth=0.5)
     ax.set_ylim(0, 105)
@@ -121,11 +122,28 @@ def preprocess_placebo():
         new.round(5).to_csv(path + name + '.clean.csv', index=False)
 
 
-def main():
-    sanity_check_everything()
-    preprocess_everything()
-    preprocess_placebo()
+def stand_alone():
+    #sanity_check_everything()
+    #preprocess_everything()
+    #preprocess_placebo()
+    parser = argparse.ArgumentParser()
+    parser.add_argument('input', type=str, 
+                        help='Path to CSV file of the digitized KM curve')
+    parser.add_argument('-o', '--output', default=None,
+                        help="Output file name.")
+    
+    args = parser.parse_args()
+    cleaned = preprocess_survival_data(args.input)
+    if args.output is None:
+        tokens = args.input.rsplit('/', 1)
+        indir, filename = tokens[0], tokens[1]
+        file_prefix = filename.rsplit('.', 1)[0]
+        cleaned.to_csv(f'{indir}/{file_prefix}.clean.csv', index=False)
+    else:
+        cleaned.to_csv(args.output, index=False)
 
 
 if __name__ == '__main__':
-    main()
+    sanity_check_everything()
+    preprocess_everything()
+    preprocess_placebo()

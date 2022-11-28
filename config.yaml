@@ -1,0 +1,4 @@
+combination_trial_sheet: "data/combination_trial_sheet.txt"
+raw_trial_dir: "data/raw/trials"
+trial_dir: "data/trials"
+placebo_dir: "data/placebo"
