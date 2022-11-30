@@ -57,7 +57,7 @@ def get_cox_results(ipd_base, ipd_test):
     return tuple(cph.summary.loc['Arm', ['p', 'exp(coef)', 'exp(coef) lower 95%', 'exp(coef) upper 95%']])
 
 
-def cox_ph_test(input_df):
+def cox_ph_test(input_df: pd.DataFrame) -> pd.DataFrame:
     tmp = input_df
     # output dataframe
     cox_df = pd.DataFrame(index=tmp.index, 

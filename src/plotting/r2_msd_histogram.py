@@ -80,14 +80,14 @@ def prepare_data_for_r2_histogram(cox_df: pd.DataFrame) -> pd.DataFrame:
     return r2_df
 
 
-def plot_r2_histogram():
+def plot_r2_histogram() -> plt.figure:
     """Generate a plot for R2 histogram.
 
     Returns:
         plt.figure: plotted figure
     """    
-    indir, cox_df = import_input_data()
-    r2_df = prepare_data_for_r2_histogram(indir, cox_df)
+    cox_df = import_input_data()
+    r2_df = prepare_data_for_r2_histogram(cox_df)
     cols = 2
     fig_width, fig_height = set_figsize(1, 1, cols)
     fig, axes = plt.subplots(1, cols, sharey=True, figsize=(
@@ -111,17 +111,17 @@ def plot_r2_histogram():
     
     return fig
 
-def prepare_data_for_msd_histogram(indir, cox_df):
+
+def prepare_data_for_msd_histogram(cox_df) -> pd.DataFrame:
     """Preprocess dataframe to plot MSD (mean signed difference) hsitogram.
 
     Args:
-        indir (str): input directory path
         cox_df (pd.DataFrame): cox_ph_test.csv dataframe
 
     Returns:
         pd.DataFrame: preprocessed dataframe
     """
-    error_df = cox_df[['Path', 'Experimental', 'Control',
+    error_df = cox_df[['Experimental', 'Control',
                        'Combination', 'label', 'Figure', 'Model']]
     error_df.loc[:, 'error_ind'] = np.nan
     error_df.loc[:, 'error_add'] = np.nan
@@ -129,14 +129,14 @@ def prepare_data_for_msd_histogram(indir, cox_df):
     for i in range(error_df.shape[0]):
         name_a = error_df.at[i, 'Experimental']
         name_b = error_df.at[i, 'Control']
+        name_ab = error_df.at[i, 'Combination']
 
-        path = error_df.at[i, 'Path'] + '/'
         # import data
-        obs = pd.read_csv(path + error_df.at[i, 'Combination'] + '.clean.csv')
+        obs = pd.read_csv(f'{COMBO_DATA_DIR}/{name_ab}.clean.csv')
         independent = pd.read_csv(
-            indir + '{0}-{1}_combination_predicted_ind.csv'.format(name_a, name_b))
+            f'{PFS_PRED_DIR}/{name_a}-{name_b}_combination_predicted_ind.csv')
         additive = pd.read_csv(
-            indir + '{0}-{1}_combination_predicted_add.csv'.format(name_a, name_b))
+            f'{PFS_PRED_DIR}/{name_a}-{name_b}_combination_predicted_add.csv')
 
         # set tmax
         tmax = np.amin([obs['Time'].max(), independent['Time'].max(),
@@ -169,14 +169,14 @@ def prepare_data_for_msd_histogram(indir, cox_df):
     return error_df
 
 
-def plot_msd_histogram():
+def plot_msd_histogram() -> plt.figure:
     """Generate a plot for MSD histogram.
 
     Returns:
         plt.figure: plotted figure
     """
-    indir, cox_df = import_input_data()
-    error_df = prepare_data_for_msd_histogram(indir, cox_df)
+    cox_df = import_input_data()
+    error_df = prepare_data_for_msd_histogram(cox_df)
     cols = 2
     fig_width, fig_height = set_figsize(1, 1, cols)
 

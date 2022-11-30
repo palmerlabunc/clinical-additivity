@@ -36,13 +36,13 @@ def prepare_data_for_qqplot(cox_df: pd.DataFrame) -> pd.DataFrame:
     return tmp
 
 
-def plot_all_survival_qqplot():
+def plot_all_survival_qqplot() -> plt.figure:
     """Plot QQ-plot (expected vs. observed) of all PFS curves in the dataset.
     
     Returns:
         plt.figure : figure object
     """    
-    indir, cox_df = import_input_data()
+    cox_df = import_input_data()
     tmp = prepare_data_for_qqplot(cox_df)
 
     custom_dict = {'Fits to other model': 0, 'Breast': 1, 'Cervical': 2, 
@@ -109,7 +109,7 @@ def plot_all_survival_qqplot():
     return fig
 
 
-def qqplot_legends():
+def qqplot_legends() -> plt.figure:
     """Generate legend figure for the QQ-plot.
     
     Returns:

@@ -40,7 +40,7 @@ def sample_joint_response_add(ori_a: pd.DataFrame, ori_b: pd.DataFrame,
     return sorted(predicted, reverse=True)
 
 
-def sample_joint_response(ori_a, ori_b):
+def sample_joint_response(ori_a: pd.DataFrame, ori_b: pd.DataFrame) -> list:
     """ Calculate predicted PFS time for n-patients in combination therapy under HSA.
 
     Args:
@@ -53,7 +53,17 @@ def sample_joint_response(ori_a, ori_b):
     return sorted(np.maximum(ori_a, ori_b), reverse=True)
 
 
-def set_tmax(df_a, df_b, df_ab):
+def set_tmax(df_a: pd.DataFrame, df_b: pd.DataFrame, df_ab: pd.DataFrame) -> float:
+    """Find minimum of the maximum follow-up time between trials.
+
+    Args:
+        df_a (pd.DataFrame): Survival data for drug A
+        df_b (pd.DataFrame): Survival data for drug B
+        df_ab (pd.DataFrame): Survival data for A+B
+
+    Returns:
+        float: max time
+    """    
     if df_a.at[0, 'Survival'] < 5 and df_b.at[0, 'Survival'] < 5:
         tmax = min(
             max(df_a.at[0, 'Time'], df_b.at[0, 'Time']), df_ab.at[0, 'Time'])
@@ -62,8 +72,9 @@ def set_tmax(df_a, df_b, df_ab):
     return tmax
 
 
-def predict_both(df_a, df_b, name_a, name_b, subtracted, scan_time, 
-                 df_ab=None, N=5000, rho=0.3, seed_ind=0, seed_add=0, save=True):
+def predict_both(df_a: pd.DataFrame, df_b: pd.DataFrame, 
+                 name_a: str, name_b: str, subtracted: str, scan_time: float, 
+                 df_ab=None, N=5000, rho=0.3, seed_ind=0, seed_add=0, save=True) -> tuple:
     """ Predict combination effect using HSA and additivity model and writes csv output.
 
     Args:

@@ -5,7 +5,7 @@ import warnings
 warnings.filterwarnings("ignore")
 
 
-def make_label(name):
+def make_label(name: str) -> str:
     """Format file name to '{Cancer type} {Author} et al. {Year}' for figure label.
 
     Args:
@@ -20,7 +20,7 @@ def make_label(name):
     return f"{cancer} Cancer\n({author} et al. {year})"
 
 
-def plot_one_placebo(df, scan_time, ax, label=None):
+def plot_one_placebo(df: pd.DataFrame, scan_time: float, ax: plt.axes, label=None) -> plt.axes:
     """ Plot one placebo curve to an axes object.
 
     Args:
@@ -50,7 +50,7 @@ def plot_one_placebo(df, scan_time, ax, label=None):
     return ax
 
 
-def plot_placebo():
+def plot_placebo() -> plt.figure:
     """Plot all placebo curves in one figure.
 
     Returns:
