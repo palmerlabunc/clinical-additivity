@@ -93,51 +93,41 @@ def sanity_check_plot(ori: pd.DataFrame, new: pd.DataFrame, ax: plt.Axes) -> plt
 
 
 def sanity_check_everything():
-    OUTDIR = '../analysis/preprocessing/{}/'.format(date.today())
-    new_directory = Path(OUTDIR)
-    new_directory.mkdir(parents=True, exist_ok=True)
-    indf = pd.read_csv('../data/trials/final_input_list.txt', sep='\t')
+    indf = pd.read_csv(COMBO_INPUT_SHEET, sep='\t')
     cols = ['Experimental', 'Control', 'Combination']
     fig, axes = plt.subplots(indf.shape[0], 3, figsize=(6, 30))
     for i in range(indf.shape[0]):
-        path = indf.at[i, 'Path'] + '/'
         for k in range(len(cols)):
             try:
                 name = indf.at[i, cols[k]]
-                ori = raw_import(path + name + '.csv')
+                ori = raw_import(f'{RAW_COMBO_DIR}/{name}.csv')
                 ori.columns = ['Time', 'Survival']
-                new = preprocess_survival_data(path + name + '.csv')
+                new = preprocess_survival_data(f'{RAW_COMBO_DIR}/{name}.csv')
                 axes[i, k] = sanity_check_plot(ori, new, axes[i, k])
             except:
                 print(name)
-    fig.savefig(OUTDIR + 'sanity_check.png')
+    fig.savefig(f'{FIG_DIR}/preprocess_sanity_check.png')
 
 
 def preprocess_everything():
-    indf = pd.read_csv('../data/trials/final_input_list.txt', sep='\t')
+    indf = pd.read_csv(COMBO_INPUT_SHEET, sep='\t')
     cols = ['Experimental', 'Control', 'Combination']
     for i in range(indf.shape[0]):
-        path = indf.at[i, 'Path'] + '/'
         for k in range(len(cols)):
             name = indf.at[i, cols[k]]
-            new = preprocess_survival_data(path + name + '.csv')
-            new.round(5).to_csv(path + name + '.clean.csv', index=False)
+            new = preprocess_survival_data(f'{RAW_COMBO_DIR}/{name}.csv')
+            new.round(5).to_csv(f'{COMBO_DATA_DIR}/{name}.clean.csv', index=False)
 
 
 def preprocess_placebo():
-    indf = pd.read_csv('../data/placebo/placebo_input_list.txt', sep='\t', header=0)
+    indf = pd.read_csv(PLACEBO_INPUT_SHEET, sep='\t', header=0)
     for i in range(indf.shape[0]):
-        path = indf.at[i, 'Path'] + '/'
         name = indf.at[i, 'File prefix']
-        print(name)
-        new = preprocess_survival_data(path + name + '.csv')
-        new.round(5).to_csv(path + name + '.clean.csv', index=False)
+        new = preprocess_survival_data(f'{RAW_PLACEBO_DIR}/{name}.csv')
+        new.round(5).to_csv(f'{PLACEBO_DATA_DIR}/{name}.clean.csv', index=False)
 
 
 def stand_alone():
-    #sanity_check_everything()
-    #preprocess_everything()
-    #preprocess_placebo()
     parser = argparse.ArgumentParser()
     parser.add_argument('input', type=str, 
                         help='Path to CSV file of the digitized KM curve')
