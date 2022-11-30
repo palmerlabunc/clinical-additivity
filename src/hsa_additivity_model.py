@@ -121,48 +121,62 @@ def predict_both(df_a: pd.DataFrame, df_b: pd.DataFrame,
     additivity.loc[additivity['Time'] > tmax, 'Time'] = tmax
 
     if save == True:
-        additivity.round(5).to_csv(
-            OUTDIR + '{0}-{1}_combination_predicted_add.csv'.format(name_a, name_b), index=False)
-        independent.round(5).to_csv(
-            OUTDIR + '{0}-{1}_combination_predicted_ind.csv'.format(name_a, name_b), index=False)
+        additivity.round(5).to_csv(f'{OUTDIR}/{name_a}-{name_b}_combination_predicted_add.csv', 
+                                   index=False)
+        independent.round(5).to_csv(f'{OUTDIR}/{name_a}-{name_b}_combination_predicted_ind.csv',
+                                    index=False)
     
     return (independent, additivity)
 
 
+def subtract_which_scan_time(scan_a: int, scan_b: int) -> tuple:
+    """Determines which monotherapy scan time to subtract.
+
+    Args:
+        scan_a (int): Scan time of drug A (Experimental)
+        scan_b (int): Scan time of drug B (Control)
+
+    Returns:
+        tuple: ('a' or 'b', scan_time)
+    """    
+    if scan_a == 9999:
+        scan_a = -9999
+    if scan_b == 9999:
+        scan_b = -9999
+    if scan_a < scan_b:
+        scan_time = scan_b
+        subtracted = 'b'
+    else:
+        scan_time = scan_a
+        subtracted = 'a'
+    return (subtracted, scan_time)
+
+
 def main():
-    indf = pd.read_csv('../data/trials/final_input_list_with_seed.txt', sep='\t')
+    indf = pd.read_csv(COMBO_SEED_SHEET, sep='\t')
     for i in indf.index:
-        print(i)
         name_a = indf.at[i, 'Experimental']
         name_b = indf.at[i, 'Control']
         name_ab = indf.at[i, 'Combination']
-        path = indf.at[i, 'Path'] + '/'
         corr = indf.at[i, 'Corr']  # experimental spearman correlation value
         # random generator seed that results in median of 100 simulations
         seed_ind = indf.at[i, 'ind_median_run']
         seed_add = indf.at[i, 'add_median_run']
-        df_a = pd.read_csv(path + name_a + '.clean.csv', 
+        df_a = pd.read_csv(f'{COMBO_DATA_DIR}/{name_a}.clean.csv',
                            header=0, index_col=False)
-        df_b = pd.read_csv(path + name_b + '.clean.csv', 
+        df_b = pd.read_csv(f'{COMBO_DATA_DIR}/{name_b}.clean.csv',
                            header=0, index_col=False)
-        df_ab = pd.read_csv(path + name_ab + '.clean.csv',
+        df_ab = pd.read_csv(f'{COMBO_DATA_DIR}/{name_ab}.clean.csv',
                             header=0, index_col=False)
         # subtract initial scan time of the larger one
         scan_a = indf.at[i, 'Experimental First Scan Time']
         scan_b = indf.at[i, 'Control First Scan Time']
-        if scan_a == 9999:
-            scan_a = -9999
-        if scan_b == 9999:
-            scan_b = -9999
-        if scan_a < scan_b:
-            scan_time = scan_b
-            subtracted = 'b'
-        else:
-            scan_time = scan_a
-            subtracted = 'a'
+
+        subtracted, scan_time = subtract_which_scan_time(scan_a, scan_b)
 
         predict_both(df_a, df_b, name_a, name_b, subtracted, scan_time,
                      df_ab=df_ab, rho=corr, seed_ind=seed_ind, seed_add=seed_add)
+
 
 if __name__ == "__main__":
     main()

@@ -122,13 +122,23 @@ def cox_ph_test(input_df: pd.DataFrame) -> pd.DataFrame:
     cox_df.loc[cond_syn, 'Model'] = 'synergy'
     cox_df.loc[cond_bad, 'Model'] = 'worse than independent'
     cox_df.loc[cond_btn, 'Model'] = 'between'
+
+    # assign figure
+    cox_df.loc[:, 'Figure'] = cox_df['Model']
+    cox_df.loc[cox_df['Main analysis'] == 0, 'Figure'] = 'suppl'
+
     return cox_df
 
+
 def main():
-    indf = pd.read_csv('../data/trials/final_input_list_with_seed.txt', sep='\t')
-    cox_df = cox_ph_test(indf)
-    results = pd.concat([indf, cox_df], axis=1)
-    results.to_csv(INDIR + 'cox_ph_test_new_version.csv', index=False)
+    indf = pd.read_csv(COMBO_SEED_SHEET, sep='\t')
+    results = cox_ph_test(indf)
+    # default save when output file name is not given
+    if len(sys.argv) == 1:
+        results.to_csv(f'{OUTDIR}/cox_ph_test.csv', index=False)
+    else:
+        results.to_csv(sys.argv[1], index=False)
+
 
 if __name__ == '__main__':
     main()

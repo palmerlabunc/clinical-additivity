@@ -76,3 +76,16 @@ def forest_plot() -> plt.figure:
         ax.set_xlim(0.25, 3)
 
     return fig
+
+
+def main():
+    fig = forest_plot()
+    if len(sys.argv) == 1:
+        outfile = f'{FIG_DIR}/cox_ph_test.csv'
+    else:
+        outfile = sys.argv[1]
+    fig.savefig(outfile)
+
+
+if __name__ == '__main__':
+    main()

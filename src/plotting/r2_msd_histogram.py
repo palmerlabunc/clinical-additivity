@@ -38,14 +38,12 @@ def prepare_data_for_r2_histogram(cox_df: pd.DataFrame) -> pd.DataFrame:
     for i in range(r2_df.shape[0]):
         name_a = r2_df.at[i, 'Experimental']
         name_b = r2_df.at[i, 'Control']
+        name_ab = r2_df.at[i, 'Combination']
 
-        path = r2_df.at[i, 'Path'] + '/'
         # import data
-        obs = pd.read_csv(path + r2_df.at[i, 'Combination'] + '.clean.csv')
-        independent = pd.read_csv(
-            indir + '{0}-{1}_combination_predicted_ind.csv'.format(name_a, name_b))
-        additive = pd.read_csv(
-            indir + '{0}-{1}_combination_predicted_add.csv'.format(name_a, name_b))
+        obs = pd.read_csv(f'{COMBO_DATA_DIR}/{name_ab}.clean.csv')
+        independent = pd.read_csv(f'{PFS_PRED_DIR}/{name_a}-{name_b}_combination_predicted_ind.csv')
+        additive = pd.read_csv(f'{PFS_PRED_DIR}/{name_a}-{name_b}_combination_predicted_add.csv')
 
         # set tmax
         tmax = np.amin([obs['Time'].max(), independent['Time'].max(),
@@ -204,3 +202,17 @@ def plot_msd_histogram() -> plt.figure:
     axes[0].set_xlabel('Mean Signed Difference (%)')
 
     return fig
+
+
+def main():
+    r2_fig = plot_r2_histogram()
+    r2_fig.savefig(f'{FIG_DIR}/r2_histogram.pdf',
+                 bbox_inches='tight', pad_inches=0.1)
+
+    msd_fig = plot_msd_histogram()
+    msd_fig.savefig(f'{FIG_DIR}/msd_histogram.pdf',
+                    bbox_inches='tight', pad_inches=0.1)
+
+
+if __name__ == '__main__':
+    main()

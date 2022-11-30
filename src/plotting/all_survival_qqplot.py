@@ -25,7 +25,7 @@ def prepare_data_for_qqplot(cox_df: pd.DataFrame) -> pd.DataFrame:
     Returns:
         pd.DataFrame: dataframe for plotting
     """    
-    tmp = cox_df[['Path', 'Experimental', 'Control',
+    tmp = cox_df[['Experimental', 'Control',
                   'Combination', 'Figure', 'Model']]
 
     tmp.loc[:, 'ind_label'] = tmp['Combination'].str.split('_', expand=True)[0]
@@ -55,7 +55,9 @@ def plot_all_survival_qqplot() -> plt.figure:
     cols = 2 
     fig_width, fig_height = set_figsize(1, 1, cols)
 
-    fig, axes = plt.subplots(1, cols, sharey=True, figsize=(fig_width, fig_height), subplot_kw=dict(box_aspect=1), dpi=300)
+    fig, axes = plt.subplots(1, cols, sharey=True, 
+                             figsize=(fig_width, fig_height), 
+                             subplot_kw=dict(box_aspect=1), dpi=300)
     sns.despine()
     ticks = [0, 50, 100]
 
@@ -69,12 +71,12 @@ def plot_all_survival_qqplot() -> plt.figure:
     for i in tmp.sort_values('ind_label', key=lambda x: x.map(custom_dict)).index:
         name_a = tmp.at[i, 'Experimental']
         name_b = tmp.at[i, 'Control']
-        path = tmp.at[i, 'Path'] + '/'
+        name_ab = tmp.at[i, 'Combination']
         ind_color = pal[custom_dict[tmp.at[i, 'ind_label']]]
 
         # import data
-        obs = pd.read_csv(path + tmp.at[i, 'Combination'] + '.clean.csv')
-        independent = pd.read_csv(indir + '{0}-{1}_combination_predicted_ind.csv'.format(name_a, name_b))
+        obs = pd.read_csv(f'{COMBO_DATA_DIR}/{name_ab}.clean.csv')
+        independent = pd.read_csv(f'{PFS_PRED_DIR}/{name_a}-{name_b}_combination_predicted_ind.csv')
         # set tmax
         tmax = np.amin([obs['Time'].max(), independent['Time'].max()]) - 0.1
 
@@ -88,11 +90,12 @@ def plot_all_survival_qqplot() -> plt.figure:
     for i in tmp.sort_values('add_label', key=lambda x: x.map(custom_dict)).index:
         name_a = tmp.at[i, 'Experimental']
         name_b = tmp.at[i, 'Control']
-        path = tmp.at[i, 'Path'] + '/'
+        name_ab = tmp.at[i, 'Combination']
         add_color = pal[custom_dict[tmp.at[i, 'add_label']]]
         # import data
-        obs = pd.read_csv(path + tmp.at[i, 'Combination'] + '.clean.csv')
-        additive = pd.read_csv(indir + '{0}-{1}_combination_predicted_add.csv'.format(name_a, name_b))
+        obs = pd.read_csv(f'{COMBO_DATA_DIR}/{name_ab}.clean.csv')
+        additive = pd.read_csv(
+            f'{PFS_PRED_DIR}/{name_a}-{name_b}_combination_predicted_add.csv')
         # set tmax
         tmax = np.amin([obs['Time'].max(), additive['Time'].max()]) - 0.1
 
@@ -134,3 +137,15 @@ def qqplot_legends() -> plt.figure:
                     0], ax.get_legend_handles_labels()[1], ncol=3)
 
     return legendFig
+
+
+def main():
+    main_fig = plot_all_survival_qqplot()
+    legend_fig = qqplot_legends()
+    main_fig.savefig(f'{FIG_DIR}/all_combo_qqplot.pdf',
+                     bbox_inches='tight', pad_inches=0.1)
+    legend_fig.savefig(f'{FIG_DIR}/qqplot_legend.pdf')
+
+
+if __name__ == '__main__':
+    main()

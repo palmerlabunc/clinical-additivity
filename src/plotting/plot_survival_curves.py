@@ -61,40 +61,37 @@ def plot_survivals(df_control: pd.DataFrame, df_combo: pd.DataFrame,
     return ax
 
 
-def plot_additive_survival():
+def plot_additive_survival() -> plt.figure:
     """Generates a figure with all combination survival curves that are only
     consistent with or surpass additivity.
-
     Returns:
         plt.figure:
-    """    
-    indir, cox_df = import_input_data()
+    """
+    cox_df = import_input_data()
     tmp = cox_df[(cox_df['Figure'] == 'additive') |
                  (cox_df['Figure'] == 'synergy')]
     # sort by cancer types
     tmp = tmp.sort_values(by=['Figure', 'Combination'],
-                        ascending=[False, True]).reset_index()
+                          ascending=[False, True]).reset_index()
 
-
-    fig, axes = plt.subplots(4, 5, figsize=(6, 6 * 4/5), 
-                             subplot_kw=dict(box_aspect=0.7), 
+    fig, axes = plt.subplots(4, 5, figsize=(6, 6 * 4/5),
+                             subplot_kw=dict(box_aspect=0.7),
                              sharey=True, constrained_layout=True)
     sns.despine()
     flat_axes = axes.flatten()
 
-
     for i in range(tmp.shape[0]):
         name_a = tmp.at[i, 'Experimental']
         name_b = tmp.at[i, 'Control']
+        name_ab = tmp.at[i, 'Combination']
 
-        path = tmp.at[i, 'Path'] + '/'
-        df_b = pd.read_csv(path + tmp.at[i, 'Control'] + '.clean.csv')
-        df_ab = pd.read_csv(path + tmp.at[i, 'Combination'] + '.clean.csv')
+        df_b = pd.read_csv(f'{COMBO_DATA_DIR}/{name_b}.clean.csv')
+        df_ab = pd.read_csv(f'{COMBO_DATA_DIR}/{name_ab}.clean.csv')
 
         independent = pd.read_csv(
-            indir + '{0}-{1}_combination_predicted_ind.csv'.format(name_a, name_b))
+            f'{PFS_PRED_DIR}/{name_a}-{name_b}_combination_predicted_ind.csv')
         additive = pd.read_csv(
-            indir + '{0}-{1}_combination_predicted_add.csv'.format(name_a, name_b))
+            f'{PFS_PRED_DIR}/{name_a}-{name_b}_combination_predicted_add.csv')
 
         plot_survivals(df_b, df_ab, additive, independent, flat_axes[i])
         flat_axes[i].text(0.85, 0.8, str(
@@ -106,20 +103,19 @@ def plot_additive_survival():
     return fig
 
 
-def plot_between_survival():
+def plot_between_survival() -> plt.figure:
     """Generates a figure with all combination survival curves that are
     consistent with both additivity and HSA.
-
     Returns:
         plt.figure:
-    """    
-    indir, cox_df = import_input_data()
+    """
+    cox_df = import_input_data()
     tmp = cox_df[(cox_df['Figure'] == 'between')]
     # sort by cancer types
     tmp = tmp.sort_values('Combination').reset_index()
-    
-    fig, axes = plt.subplots(2, 5, figsize=(6,  6 * 2/5), 
-                             subplot_kw=dict(box_aspect=0.7), 
+
+    fig, axes = plt.subplots(2, 5, figsize=(6,  6 * 2/5),
+                             subplot_kw=dict(box_aspect=0.7),
                              sharey=True, constrained_layout=True)
 
     sns.despine()
@@ -128,38 +124,38 @@ def plot_between_survival():
     for i in range(tmp.shape[0]):
         name_a = tmp.at[i, 'Experimental']
         name_b = tmp.at[i, 'Control']
+        name_ab = tmp.at[i, 'Combination']
 
-        path = tmp.at[i, 'Path'] + '/'
-        df_b = pd.read_csv(path + tmp.at[i, 'Control'] + '.clean.csv')
-        df_ab = pd.read_csv(path + tmp.at[i, 'Combination'] + '.clean.csv')
+        df_b = pd.read_csv(f'{COMBO_DATA_DIR}/{name_b}.clean.csv')
+        df_ab = pd.read_csv(f'{COMBO_DATA_DIR}/{name_ab}.clean.csv')
 
         independent = pd.read_csv(
-            indir + '{0}-{1}_combination_predicted_ind.csv'.format(name_a, name_b))
+            f'{PFS_PRED_DIR}/{name_a}-{name_b}_combination_predicted_ind.csv')
         additive = pd.read_csv(
-            indir + '{0}-{1}_combination_predicted_add.csv'.format(name_a, name_b))
+            f'{PFS_PRED_DIR}/{name_a}-{name_b}_combination_predicted_add.csv')
 
         plot_survivals(df_b, df_ab, additive, independent, flat_axes[i])
-        flat_axes[i].text(0.85, 0.8, str(i+18), transform=flat_axes[i].transAxes, fontweight='bold')
+        flat_axes[i].text(0.85, 0.8, str(
+            i+18), transform=flat_axes[i].transAxes, fontweight='bold')
 
     return fig
 
 
-def plot_hsa_survival():
+def plot_hsa_survival() -> plt.figure:
     """Generates a figure with all combination survival curves that are
     only consistent with or inferior to HSA.
-
     Returns:
         plt.figure:
-    """    
-    indir, cox_df = import_input_data()
+    """
+    cox_df = import_input_data()
     tmp = cox_df[(cox_df['Figure'] == 'independent') | (
         cox_df['Figure'] == 'worse than independent')]
     # sort by cancer types
     tmp = tmp.sort_values(['Model', 'Combination'], ascending=[
-                        True, True]).reset_index()
+        True, True]).reset_index()
 
-    fig, axes = plt.subplots(2, 5, figsize=(6, 6 * 2/5), 
-                             subplot_kw=dict(box_aspect=0.7), 
+    fig, axes = plt.subplots(2, 5, figsize=(6, 6 * 2/5),
+                             subplot_kw=dict(box_aspect=0.7),
                              sharey=True, constrained_layout=True)
     sns.despine()
     flat_axes = axes.flatten()
@@ -167,18 +163,31 @@ def plot_hsa_survival():
     for i in range(tmp.shape[0]):
         name_a = tmp.at[i, 'Experimental']
         name_b = tmp.at[i, 'Control']
+        name_ab = tmp.at[i, 'Combination']
 
-        path = tmp.at[i, 'Path'] + '/'
-        df_b = pd.read_csv(path + tmp.at[i, 'Control'] + '.clean.csv')
-        df_ab = pd.read_csv(path + tmp.at[i, 'Combination'] + '.clean.csv')
+        df_b = pd.read_csv(f'{COMBO_DATA_DIR}/{name_b}.clean.csv')
+        df_ab = pd.read_csv(f'{COMBO_DATA_DIR}/{name_ab}.clean.csv')
 
         independent = pd.read_csv(
-            indir + '{0}-{1}_combination_predicted_ind.csv'.format(name_a, name_b))
+            f'{PFS_PRED_DIR}/{name_a}-{name_b}_combination_predicted_ind.csv')
         additive = pd.read_csv(
-            indir + '{0}-{1}_combination_predicted_add.csv'.format(name_a, name_b))
+            f'{PFS_PRED_DIR}/{name_a}-{name_b}_combination_predicted_add.csv')
 
         plot_survivals(df_b, df_ab, additive, independent, flat_axes[i])
         flat_axes[i].text(0.85, 0.8, str(
             i+28), transform=flat_axes[i].transAxes, fontweight='bold')
-
     return fig
+
+
+def main():
+    additive_fig = plot_additive_survival()
+    between_fig = plot_between_survival()
+    hsa_fig = plot_hsa_survival()
+
+    additive_fig.savefig(f'{FIG_DIR}/additive_survival_plots.pdf')
+    between_fig.savefig(f'{FIG_DIR}/between_survival_plots.pdf')
+    hsa_fig.savefig(f'{FIG_DIR}/hsa_survival_plots.pdf')
+
+
+if __name__ == '__main__':
+    main()
