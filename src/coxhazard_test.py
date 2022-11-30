@@ -32,12 +32,16 @@ def create_ipd(df: pd.DataFrame, n=500) -> pd.DataFrame:
     interp = interpolate(df, x='Survival', y='Time')
     # censoring due to loss of follow-up at the tail
     min_surv = np.round(np.ceil(df['Survival'].min())/100, 2)
-    events = np.hstack((np.repeat(0, round(min_surv * n)), np.repeat(1, round((1 - min_surv) * n))))
+    events = np.hstack((np.repeat(0, round(min_surv * n)), 
+                        np.repeat(1, round((1 - min_surv) * n))))
+    if len(events) > n:
+        events = events[len(events) - n:]
+
     t = interp(np.linspace(0, 100, n))
     return pd.DataFrame({'Time': t, 'Event': events})
 
 
-def get_cox_results(ipd_base, ipd_test):
+def get_cox_results(ipd_base: pd.DataFrame, ipd_test: pd.DataFrame) -> tuple:
     """Perform Cox PH test. IPD should have columns Time, Event.
     HR < 1 indicates that test has less hazard (i.e., better than) base.
 
@@ -61,29 +65,30 @@ def cox_ph_test(input_df: pd.DataFrame) -> pd.DataFrame:
     tmp = input_df
     # output dataframe
     cox_df = pd.DataFrame(index=tmp.index, 
-                                columns=['p_ind', 'HR_ind', 'HRlower_ind', 'HRupper_ind', 
-                                         'p_add', 'HR_add', 'HRlower_add', 'HRupper_add', 'Model'])
-
+                          columns=['p_ind', 'HR_ind', 'HRlower_ind', 'HRupper_ind', 
+                                   'p_add', 'HR_add', 'HRlower_add', 'HRupper_add', 'Model'])
+    cox_df = pd.concat([input_df, cox_df], axis=1)
     for i in range(tmp.shape[0]):
-        print(i)
+
         name_a = tmp.at[i, 'Experimental']
         name_b = tmp.at[i, 'Control']
-
+        name_ab = tmp.at[i, 'Combination']
+        n_combo = tmp.at[i, 'N_combination']
+        print(i, n_combo)
         # observed data
-        path = tmp.at[i, 'Path'] + '/'
-        df_a = pd.read_csv(path + tmp.at[i, 'Experimental'] + '.clean.csv').dropna()
-        df_b = pd.read_csv(path + tmp.at[i, 'Control'] + '.clean.csv').dropna()
-        df_ab = pd.read_csv(path + tmp.at[i, 'Combination'] + '.clean.csv').dropna()
+        df_a = pd.read_csv(f'{COMBO_DATA_DIR}/{name_a}.clean.csv').dropna()
+        df_b = pd.read_csv(f'{COMBO_DATA_DIR}/{name_b}.clean.csv').dropna()
+        df_ab = pd.read_csv(f'{COMBO_DATA_DIR}/{name_ab}.clean.csv').dropna()
         
         try:
-            ipd_ab = pd.read_csv(path + tmp.at[i, 'Combination'] + '_indiv.csv')
+            ipd_ab = pd.read_csv(f'{RAW_COMBO_DATA_DIR}/{name_ab}_indiv.csv')
             print("used IPD")
         except FileNotFoundError:
-            ipd_ab = create_ipd(df_ab, n=200)
+            ipd_ab = create_ipd(df_ab, n=n_combo)
 
         # import prediction
-        independent = pd.read_csv(INDIR + '{0}-{1}_combination_predicted_ind.csv'.format(name_a, name_b)).dropna()
-        additive = pd.read_csv(INDIR + '{0}-{1}_combination_predicted_add.csv'.format(name_a, name_b)).dropna()
+        independent = pd.read_csv(f'{PFS_PRED_DIR}/{name_a}-{name_b}_combination_predicted_ind.csv').dropna()
+        additive = pd.read_csv(f'{PFS_PRED_DIR}/{name_a}-{name_b}_combination_predicted_add.csv').dropna()
 
         tmax = np.amin([df_ab['Time'].max(), independent['Time'].max(), df_a['Time'].max(), df_b['Time'].max()])
         independent = independent[independent['Time'] < tmax]

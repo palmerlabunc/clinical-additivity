@@ -30,11 +30,10 @@ def import_input_data() -> pd.DataFrame:
     Returns:
         (str, pd.DataFrame): a tuple of input directory path and input data
     """
-    indir = '../data/PFS_predictions/'
-    cox_df = pd.read_csv(indir + 'cox_ph_test.csv', index_col=False)
+    cox_df = pd.read_csv(COX_RESULT, index_col=False)
     # remove supplementary
     cox_df = cox_df[cox_df['Figure'] != 'suppl'].reset_index()
-    return indir, cox_df
+    return cox_df
 
 
 def import_input_data_include_suppl() -> pd.DataFrame:
@@ -43,9 +42,8 @@ def import_input_data_include_suppl() -> pd.DataFrame:
     Returns:
         (str, pd.DataFrame): a tuple of input directory path and input data
     """
-    indir = '../data/PFS_predictions/'
-    cox_df = pd.read_csv(indir + 'cox_ph_test.csv', index_col=False)
-    return indir, cox_df
+    cox_df = pd.read_csv(COX_RESULT, index_col=False)
+    return cox_df
 
 
 def set_figsize(scale: float, rows: int, cols: int, 
