@@ -2,12 +2,19 @@ import pandas as pd
 import numpy as np
 from pathlib import Path
 from utils import populate_N_patients, fit_rho3
+import yaml
 
-OUTDIR = '../data/PFS_predictions/'
+with open('config.yaml', 'r') as f:
+    CONFIG = yaml.safe_load(f)
+
+COMBO_SEED_SHEET = CONFIG['metadata_sheet']['combo_seed']
+COMBO_DATA_DIR = CONFIG['dir']['combo_data']
+OUTDIR = CONFIG['dir']['PFS_prediction']
 new_directory = Path(OUTDIR)
 new_directory.mkdir(parents=True, exist_ok=True)
 
-def sample_joint_response_add(ori_a, ori_b, subtracted, scan_time):
+def sample_joint_response_add(ori_a: pd.DataFrame, ori_b: pd.DataFrame, 
+                              subtracted: str, scan_time: float) -> list:
     """Calculates predicted PFS time for n-patients in combination therapy under additivity.
 
     Args:

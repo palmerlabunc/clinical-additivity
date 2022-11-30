@@ -2,12 +2,22 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
-from .plot_utils import import_input_data, set_figsize, interpolate
+from plot_utils import import_input_data, set_figsize, interpolate
 import warnings
+import yaml
+
+with open('config.yaml', 'r') as f:
+    CONFIG = yaml.safe_load(f)
+
+COMBO_SEED_SHEET = CONFIG['metadata_sheet']['combo_seed']
+COMBO_DATA_DIR = CONFIG['dir']['combo_data']
+PFS_PRED_DIR = CONFIG['dir']['PFS_prediction']
+FIG_DIR = CONFIG['dir']['figures']
+
 warnings.filterwarnings("ignore")
 
 
-def prepare_data_for_qqplot(cox_df):
+def prepare_data_for_qqplot(cox_df: pd.DataFrame) -> pd.DataFrame:
     """Prepare dataframe for plotting.
     Args:
         cox_df (pd.DataFrame): cox_ph_test.csv file

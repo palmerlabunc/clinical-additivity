@@ -3,12 +3,24 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.ticker as plticker
 import seaborn as sns
-from .plot_utils import import_input_data, get_model_colors
+from plot_utils import import_input_data, get_model_colors
 import warnings
+import yaml
+
+with open('config.yaml', 'r') as f:
+    CONFIG = yaml.safe_load(f)
+
+COMBO_SEED_SHEET = CONFIG['metadata_sheet']['combo_seed']
+COMBO_DATA_DIR = CONFIG['dir']['combo_data']
+PFS_PRED_DIR = CONFIG['dir']['PFS_prediction']
+FIG_DIR = CONFIG['dir']['figures']
+
 warnings.filterwarnings("ignore")
 
 
-def plot_survivals(df_control, df_combo, df_add, df_ind, ax, label=None):
+def plot_survivals(df_control: pd.DataFrame, df_combo: pd.DataFrame, 
+                   df_add: pd.DataFrame, df_ind: pd.DataFrame, ax: plt.axes, 
+                   label=None) -> plt.axes:
     """Helper function to plot survival curves. Plots survival on plt.Axes object.
 
     Args:

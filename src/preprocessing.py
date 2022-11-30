@@ -3,8 +3,20 @@ import numpy as np
 import matplotlib.pyplot as plt
 import os
 from pathlib import Path
-from datetime import date
 import argparse
+import yaml
+
+with open('config.yaml', 'r') as f:
+    CONFIG = yaml.safe_load(f)
+
+COMBO_INPUT_SHEET = CONFIG['metadata_sheet']['combo']
+PLACEBO_INPUT_SHEET = CONFIG['metadata_sheet']['placebo']
+
+RAW_COMBO_DIR = CONFIG['dir']['raw_combo_data']
+RAW_PLACEBO_DIR = CONFIG['dir']['raw_placebo_data']
+COMBO_DATA_DIR = CONFIG['dir']['combo_data']
+PLACEBO_DATA_DIR = CONFIG['dir']['placebo_data']
+FIG_DIR = CONFIG['dir']['figures']
 
 def raw_import(filepath: str) -> pd.DataFrame:
     with open(filepath, 'r') as f:

@@ -3,23 +3,32 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 from sklearn.metrics import r2_score
-from .plot_utils import import_input_data, set_figsize, interpolate
+from plot_utils import import_input_data, set_figsize, interpolate
 import warnings
+import yaml
+
+with open('config.yaml', 'r') as f:
+    CONFIG = yaml.safe_load(f)
+
+COMBO_SEED_SHEET = CONFIG['metadata_sheet']['combo_seed']
+COMBO_DATA_DIR = CONFIG['dir']['combo_data']
+PFS_PRED_DIR = CONFIG['dir']['PFS_prediction']
+FIG_DIR = CONFIG['dir']['figures']
+
 warnings.filterwarnings("ignore")
 
 
-def prepare_data_for_r2_histogram(indir, cox_df):
+def prepare_data_for_r2_histogram(cox_df: pd.DataFrame) -> pd.DataFrame:
     """Preprocess dataframe to plot R2 hsitogram.
 
     Args:
-        indir (str): input directory path
         cox_df (pd.DataFrame): cox_ph_test.csv dataframe
 
     Returns:
         pd.DataFrame: preprocessed dataframe
     """    
 
-    r2_df = cox_df[['Path', 'Experimental', 'Control',
+    r2_df = cox_df[['Experimental', 'Control',
                     'Combination', 'label', 'Figure', 'Model']]
 
     r2_df.loc[:, 'r2_ind'] = np.nan

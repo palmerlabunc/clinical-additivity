@@ -2,10 +2,19 @@ import pandas as pd
 import numpy as np
 from lifelines import CoxPHFitter
 from utils import interpolate
+import sys
+import yaml
 
-INDIR = '../data/PFS_predictions/'
+with open('config.yaml', 'r') as f:
+    CONFIG = yaml.safe_load(f)
 
-def create_ipd(df, n=500):
+COMBO_SEED_SHEET = CONFIG['metadata_sheet']['combo_seed']
+COMBO_DATA_DIR = CONFIG['dir']['combo_data']
+RAW_COMBO_DATA_DIR = CONFIG['dir']['raw_combo_data']
+PFS_PRED_DIR = CONFIG['dir']['PFS_prediction']
+OUTDIR = CONFIG['dir']['tables']
+
+def create_ipd(df: pd.DataFrame, n=500) -> pd.DataFrame:
     #FIXME works fine as is, but can be problematic if you don't preprocess the additiivty
     # and HSA predictions that the survival curves go down to zero (which is misleading)
     """Creates individual patient data (IPD) for a given survival curve.

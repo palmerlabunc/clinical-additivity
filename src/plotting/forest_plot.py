@@ -3,17 +3,25 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 import matplotlib.ticker as plticker
-from .plot_utils import import_input_data_include_suppl
+from plot_utils import import_input_data_include_suppl
 import warnings
+import sys
+import yaml
+
+with open('config.yaml', 'r') as f:
+    CONFIG = yaml.safe_load(f)
+
+FIG_DIR = CONFIG['dir']['figures']
+
 warnings.filterwarnings("ignore")
 
-def forest_plot():
+def forest_plot() -> plt.figure:
     """Generate forest plot and return figure.
 
     Returns:
         plt.figure : figure
     """    
-    _, cox_df = import_input_data_include_suppl()
+    cox_df = import_input_data_include_suppl()
     
     add_df = cox_df[(cox_df['Model'] == 'additive') |
                     (cox_df['Model'] == 'synergy')]

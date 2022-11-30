@@ -1,5 +1,11 @@
 import pandas as pd
 from scipy.interpolate import interp1d
+import yaml
+
+with open('config.yaml', 'r') as f:
+    CONFIG = yaml.safe_load(f)
+
+COX_RESULT = CONFIG['cox_result']
 
 
 def interpolate(df, x='Time', y='Survival', kind='zero'):
