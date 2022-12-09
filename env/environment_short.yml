@@ -7,17 +7,22 @@ dependencies:
   - parallel
   - jupyter
   - autopep8
-  - scipy
+  - scipy=1.5.2
   - statsmodels
-  - seaborn
-  - matplotlib
+  - seaborn=0.11.2
+  - matplotlib=3.3.2
   - python=3.7
-  - pandas
-  - numpy
+  - pandas=1.1.3
+  - numpy=1.19.2
   - scikit-learn
-  - lifelines
+  - lifelines=0.25.4
   - xlrd
   - openpyxl
   - nb_conda_kernels
   - jupyterlab
+  - mamba[version='>=0.22.1']
+  - snakemake=7.18.2
+  - ca-certificates
+  - certifi
+  - openssl
 prefix: /Users/haeunhwangbo/anaconda3/envs/surv
