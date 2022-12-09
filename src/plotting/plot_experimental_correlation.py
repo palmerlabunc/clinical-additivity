@@ -1,12 +1,65 @@
 import matplotlib.pyplot as plt
 import seaborn as sns
+import pandas as pd
+import numpy as np
 from scipy.stats import spearmanr
 import sys
-sys.path.insert(0, '..')
-from experimental_correlation import get_pdx_corr_data, get_ctrp_corr_data
 
 
-def draw_corr_pdx(df, tumor_types, drug1, drug2, metric='BestAvgResponse'):
+def get_ctrp_corr_data(df: pd.DataFrame, cancer_type: pd.Series, 
+                       drug_a: str, drug_b: str, metric='CTRP_AUC'):
+    """Filters and returns data frame ready to calculate correlation
+
+    Args:
+        df (pd.DataFrame): CTRPv2 viability data
+        cancer_type (pd.Series): cancer type information
+        drug_a (str): name of drug A
+        drug_b (str): naem of drug B
+        metric (str): viability metric to use (Default: CTRP_AUC)
+
+    Returns:
+        pd.DataFrame: ready to calculate correlation.
+    """
+    a = df[df['Harmonized_Compound_Name'] ==
+           drug_a][['Harmonized_Cell_Line_ID', metric]]
+    b = df[df['Harmonized_Compound_Name'] ==
+           drug_b][['Harmonized_Cell_Line_ID', metric]]
+    # take mean if duplicated cell lines
+    a = a.groupby('Harmonized_Cell_Line_ID').mean()
+    b = b.groupby('Harmonized_Cell_Line_ID').mean()
+    merged = pd.concat([a, b, cancer_type], axis=1, join='inner')
+    merged.columns = [drug_a, drug_b, 'Cancer_Type_HH']
+
+    # drop cancer type if 1st quantile is less then 0.8 both drugs
+    by_type = merged.groupby('Cancer_Type_HH').quantile(0.25)
+    valid_types = by_type[(by_type < 0.8).sum(axis=1) != 0].index
+    merged = merged[merged['Cancer_Type_HH'].isin(valid_types)]
+    return merged
+
+
+def get_pdx_corr_data(df: pd.DataFrame, tumor_types: pd.DataFrame, 
+                      drug1: str, drug2: str, metric='BestAvgResponse'):
+    """Prepare data to calculate correlation between drug response to drug1 and 2.
+
+    Args:
+        df (pd.DataFrame): drug response data
+        tumor_types (pd.DataFrame): tumor type dataframe (model, tumor type info)
+        drug1 (str): name of drug 1
+        drug2 (str): name of drug 2
+        metric (str, optional): drug response metric. Defaults to 'BestAvgResponse'.
+
+    Returns:
+        pd.DataFrame: 
+    """    
+    a = df[df['Treatment'] == drug1].set_index('Model')[metric].astype(float)
+    b = df[df['Treatment'] == drug2].set_index('Model')[metric].astype(float)
+    merged = pd.concat([a, b, tumor_types], axis=1, join='inner')
+    merged.columns = [drug1, drug2, 'Tumor Type']
+    return merged
+
+
+def draw_corr_pdx(df: pd.DataFrame, tumor_types: pd.DataFrame, 
+                  drug1: str, drug2: str, metric='BestAvgResponse'):
     """Plot scatterplot of two drug responses and calculate spearmanr correlation.
 
     Args:
@@ -43,7 +96,7 @@ def draw_corr_pdx(df, tumor_types, drug1, drug2, metric='BestAvgResponse'):
     return fig
 
 
-def draw_ctrp_spearmanr_distribution(all_pairs, cyto_pairs, targ_pairs, cyto_targ_pairs):
+def draw_ctrp_spearmanr_distribution(all_pairs: np.array, cyto_pairs: np.array, targ_pairs: np.array, cyto_targ_pairs: np.array):
     """Plot histograms (distributions) of spearmanr correlations between CTRPv2 drug pairs.
 
     Args:

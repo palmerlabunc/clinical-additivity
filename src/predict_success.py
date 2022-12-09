@@ -3,6 +3,16 @@ import numpy as np
 from scipy.stats import pearsonr
 from plotting.plot_utils import import_input_data
 from coxhazard_test import create_ipd, get_cox_results
+from plotting.plot_predict_success import plot_predict_success
+import yaml
+
+with open('config.yaml', 'r') as f:
+    CONFIG = yaml.safe_load(f)
+
+COMBO_DATA_DIR = CONFIG['dir']['combo_data']
+PFS_PRED_DIR = CONFIG['dir']['PFS_prediction']
+FIG_DIR = CONFIG['dir']['figures']
+TABLE_DIR = CONFIG['dir']['tables']
 
 
 def predict_success():
@@ -12,33 +22,33 @@ def predict_success():
     Returns:
         pd.DataFrame: predicted results
     """    
-    indir, input_df = import_input_data()
+    input_df = import_input_data()
     # output dataframe
     results = pd.DataFrame(index=input_df.index,
                           columns=['p_ind', 'HR_ind', 'HRlower_ind', 'HRupper_ind',
                                    'p_add', 'HR_add', 'HRlower_add', 'HRupper_add'])
     for i in range(input_df.shape[0]):
-        print(i)
         name_a = input_df.at[i, 'Experimental']
         name_b = input_df.at[i, 'Control']
+        name_ab = input_df.at[i, 'Combination']
         n_control = input_df.at[i, 'N_control'].astype(int)
         n_combo = input_df.at[i, 'N_combination'].astype(int)
         # observed data
-        path = input_df.at[i, 'Path'] + '/'
-        df_a = pd.read_csv(path + input_df.at[i, 'Experimental'] + '.clean.csv')
-        df_b = pd.read_csv(path + input_df.at[i, 'Control'] + '.clean.csv')
-        df_ab = pd.read_csv(path + input_df.at[i, 'Combination'] + '.clean.csv')
+        df_a = pd.read_csv(f'{COMBO_DATA_DIR}/{name_a}.clean.csv')
+        df_b = pd.read_csv(f'{COMBO_DATA_DIR}/{name_b}.clean.csv')
+        df_ab = pd.read_csv(f'{COMBO_DATA_DIR}/{name_ab}.clean.csv')
 
         try:
-            ipd_control = pd.read_csv(
-                path + input_df.at[i, 'Control'] + '_indiv.csv')
+            ipd_control = pd.read_csv(f'{COMBO_DATA_DIR}/{name_b}_indiv.csv')
 
         except FileNotFoundError:
             ipd_control = create_ipd(df_b, n=n_control)
 
         # import prediction
-        independent = pd.read_csv(indir + f'{name_a}-{name_b}_combination_predicted_ind.csv')
-        additive = pd.read_csv(indir + f'{name_a}-{name_b}_combination_predicted_add.csv')
+        independent = pd.read_csv(
+            f'{PFS_PRED_DIR}/{name_a}-{name_b}_combination_predicted_ind.csv')
+        additive = pd.read_csv(
+            f'{PFS_PRED_DIR}/{name_a}-{name_b}_combination_predicted_add.csv')
 
         tmax = np.amin([df_ab['Time'].max(), independent['Time'].max(), 
                         df_a['Time'].max(), df_b['Time'].max()])
@@ -85,3 +95,19 @@ def calc_correlation(model, results):
     else:
         print("Wrong model argument")
         return
+
+
+def main():
+    results = predict_success()
+    results.to_csv(f'{TABLE_DIR}/HR_predicted_vs_control.csv')
+    r_hsa, p_hsa = calc_correlation('HSA', results)
+    r_add, p_add = calc_correlation('additivity', results)
+    print("r_hsa={0:.02f}, p_hsa={1:.03f}, r_add={2:.02f}, p_add={3:.03f}".format(
+        r_hsa, p_hsa, r_add, p_add))
+    fig = plot_predict_success(results)
+    fig.savefig(f'{FIG_DIR}/HR_combo_control_scatterplot.pdf',
+                bbox_inches='tight', pad_inches=0.1)
+
+
+if __name__ == '__main__':
+    main()

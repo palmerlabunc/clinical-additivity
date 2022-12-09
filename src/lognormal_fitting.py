@@ -3,6 +3,12 @@ import pandas as pd
 from scipy.stats import norm
 from scipy.optimize import curve_fit
 from plotting.plot_utils import import_input_data
+import yaml
+
+with open('config.yaml', 'r') as f:
+    CONFIG = yaml.safe_load(f)
+
+COMBO_DATA_DIR = CONFIG['dir']['combo_data']
 
 
 def lognormal_survival(x, mu, sigma):
@@ -28,7 +34,7 @@ def mse(pred, true):
         true (np.ndarray): 1-D array of true values
 
     Returns:
-        flaot: mean squared error
+        float: mean squared error
     """    
     return np.mean(np.power(pred - true, 2))
 
@@ -39,17 +45,16 @@ def fit_lognormal():
     Returns:
         pd.DataFrame: fitted parameters
     """    
-    indir, cox_df = import_input_data()
+    cox_df = import_input_data()
     lognorm_df = pd.DataFrame(index=cox_df.index, 
                               columns=['mu_a', 'sigma_a', 'mse_a', 'mu_b', 'sigma_b', 'mse_b'])
     for i in range(cox_df.shape[0]):
         name_a = cox_df.at[i, 'Experimental']
         name_b = cox_df.at[i, 'Control']
-        path = cox_df.at[i, 'Path'] + '/'
 
         # import data
-        df_a = pd.read_csv(path + name_a + '.clean.csv')
-        df_b = pd.read_csv(path + name_b + '.clean.csv')
+        df_a = pd.read_csv(f'{COMBO_DATA_DIR}/{name_a}.clean.csv')
+        df_b = pd.read_csv(f'{COMBO_DATA_DIR}/{name_b}.clean.csv')
 
         popt_a, cov_a = curve_fit(
             lognormal_survival, df_a['Time'], df_a['Survival']/100)

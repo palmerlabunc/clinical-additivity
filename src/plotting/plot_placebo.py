@@ -2,6 +2,15 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 import warnings
+import yaml
+
+with open('config.yaml', 'r') as f:
+    CONFIG = yaml.safe_load(f)
+
+PLACEBO_INPUT_SHEET = CONFIG['metadata_sheet']['placebo']
+PLACEBO_DATA_DIR = CONFIG['dir']['placebo_data']
+FIG_DIR = CONFIG['dir']['figures']
+
 warnings.filterwarnings("ignore")
 
 
@@ -56,7 +65,7 @@ def plot_placebo() -> plt.figure:
     Returns:
         plt.figure: plotted figure of all placebo survival curves 
     """    
-    indf = pd.read_csv('../data/placebo/placebo_input_list.txt', sep='\t', header=0)
+    indf = pd.read_csv(PLACEBO_INPUT_SHEET, sep='\t', header=0)
     rows, cols = 3, 3
     fig, axes = plt.subplots(rows, cols, sharey=True, 
                              figsize=(6, 6), 
@@ -66,10 +75,18 @@ def plot_placebo() -> plt.figure:
     flat_axes = axes.flatten()
 
     for i in range(indf.shape[0]):
-        path = indf.at[i, 'Path'] + '/'
         file_prefix = indf.at[i, 'File prefix']
         scan_time = indf.at[i, 'First scan time (months)']
-        placebo = pd.read_csv(path + file_prefix + '.clean.csv', header=0)
+        placebo = pd.read_csv(f'{PLACEBO_DATA_DIR}/{file_prefix}.clean.csv', header=0)
         flat_axes[i] = plot_one_placebo(placebo, scan_time, flat_axes[i], label=file_prefix)
 
     return fig
+
+
+def main():
+    fig = plot_placebo()
+    fig.savefig(f'{FIG_DIR}/placebo_survival_plots.pdf')
+
+
+if __name__ == '__main__':
+    main()

@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -5,6 +6,7 @@ import seaborn as sns
 from sklearn.metrics import r2_score
 from plot_utils import import_input_data, set_figsize, interpolate
 import warnings
+from scipy.stats import pearsonr
 import yaml
 
 with open('config.yaml', 'r') as f:
@@ -76,6 +78,112 @@ def prepare_data_for_r2_histogram(cox_df: pd.DataFrame) -> pd.DataFrame:
     r2_df.loc[r2_df['Model'].isin(['additive', 'between']), 'Additivity'] = 'Yes'
     
     return r2_df
+
+
+def calc_total_R2() -> tuple:
+    """Calculates R2 across all combinations.
+
+    Returns:
+        (float, float): R2 for HSA, R2 for Additivity
+    """    
+    cox_df = import_input_data()
+    obs_all = []
+    ind_all = []
+    add_all = []
+
+    for i in range(cox_df.shape[0]):
+        name_a = cox_df.at[i, 'Experimental']
+        name_b = cox_df.at[i, 'Control']
+        name_ab = cox_df.at[i, 'Combination']
+
+        # import data
+        obs = pd.read_csv(f'{COMBO_DATA_DIR}/{name_ab}.clean.csv')
+        independent = pd.read_csv(f'{PFS_PRED_DIR}/{name_a}-{name_b}_combination_predicted_ind.csv')
+        additive = pd.read_csv(f'{PFS_PRED_DIR}/{name_a}-{name_b}_combination_predicted_add.csv')
+
+        # set tmax
+        tmax = np.amin([obs['Time'].max(), independent['Time'].max(),
+                        additive['Time'].max()]) - 0.1
+        obs = obs[obs['Time'] < tmax]
+        independent = independent[independent['Time'] < tmax]
+        additive = additive[additive['Time'] < tmax]
+
+        f_obs = interpolate(x='Time', y='Survival', df=obs)
+        f_ind = interpolate(x='Time', y='Survival', df=independent)
+        f_add = interpolate(x='Time', y='Survival', df=additive)
+
+        time_points = np.linspace(0, tmax, 5000)
+        ori = f_obs(time_points)
+        ind = f_ind(time_points)
+        add = f_add(time_points)
+        obs_all += list(ori)
+        ind_all += list(ind)
+        add_all += list(add)
+    r2_ind = r2_score(obs_all, ind_all)
+    r2_add = r2_score(obs_all, add_all)
+    
+    
+    return r2_ind, r2_add
+
+
+
+def prepare_data_for_r_histogram(cox_df: pd.DataFrame) -> pd.DataFrame:
+    """Preprocess dataframe to plot correlation hsitogram.
+
+    Args:
+        cox_df (pd.DataFrame): cox_ph_test.csv dataframe
+
+    Returns:
+        pd.DataFrame: preprocessed dataframe
+    """    
+
+    r2_df = cox_df[['Experimental', 'Control',
+                    'Combination', 'label', 'Figure', 'Model']]
+
+    r2_df.loc[:, 'r_ind'] = np.nan
+    r2_df.loc[:, 'r_add'] = np.nan
+    obs_everything = []
+    ind_everything = []
+    add_everything = []
+    for i in range(r2_df.shape[0]):
+        name_a = r2_df.at[i, 'Experimental']
+        name_b = r2_df.at[i, 'Control']
+        name_ab = r2_df.at[i, 'Combination']
+
+        # import data
+        obs = pd.read_csv(f'{COMBO_DATA_DIR}/{name_ab}.clean.csv')
+        independent = pd.read_csv(f'{PFS_PRED_DIR}/{name_a}-{name_b}_combination_predicted_ind.csv')
+        additive = pd.read_csv(f'{PFS_PRED_DIR}/{name_a}-{name_b}_combination_predicted_add.csv')
+
+        # set tmax
+        tmax = np.amin([obs['Time'].max(), independent['Time'].max(),
+                        additive['Time'].max()]) - 0.1
+        obs = obs[obs['Time'] < tmax]
+        independent = independent[independent['Time'] < tmax]
+        additive = additive[additive['Time'] < tmax]
+
+        f_obs = interpolate(x='Time', y='Survival', df=obs)
+        f_ind = interpolate(x='Time', y='Survival', df=independent)
+        f_add = interpolate(x='Time', y='Survival', df=additive)
+
+        time_points = np.linspace(0, tmax, 5000)
+        ori = f_obs(time_points)
+        ind = f_ind(time_points)
+        add = f_add(time_points)
+        obs_everything += list(ori)
+        ind_everything += list(ind)
+        add_everything += list(add)
+        r_ind, _ = pearsonr(ori, ind)
+        r_add, _ = pearsonr(ori, add)
+
+        r2_df.at[i, 'r_ind'] = r_ind
+        r2_df.at[i, 'r_add'] = r_add
+    
+    r2_df.loc[:, 'HSA'] = 'No'
+    r2_df.loc[r2_df['Model'].isin(['independent', 'between']), 'HSA'] = 'Yes'
+    r2_df.loc[:, 'Additivity'] = 'No'
+    r2_df.loc[r2_df['Model'].isin(['additive', 'between']), 'Additivity'] = 'Yes'
+    return r2_df, pearsonr(obs_everything, ind_everything), pearsonr(obs_everything, add_everything)
 
 
 def plot_r2_histogram() -> plt.figure:
@@ -203,6 +311,20 @@ def plot_msd_histogram() -> plt.figure:
 
     return fig
 
+def calc_r():
+    cox_df = import_input_data()
+    print(calc_total_R2(cox_df))
+    r2_df = prepare_data_for_r2_histogram(cox_df)
+    print(r2_df['r2_ind'].mean(), r2_df['r2_add'].mean())
+    df, ind, add = prepare_data_for_r_histogram(cox_df)
+    print("ind", ind)
+    print("add", add)
+    print("avg ind", df['r_ind'].mean())
+    print(df['r_ind'])
+    print("avg add", df['r_add'].mean())
+    print("Add", df[df['Additivity'] == 'Yes']['r_add'].mean())
+    print("No Add", df[df['Additivity'] == 'No']['r_add'].mean())
+
 
 def main():
     r2_fig = plot_r2_histogram()
@@ -212,7 +334,11 @@ def main():
     msd_fig = plot_msd_histogram()
     msd_fig.savefig(f'{FIG_DIR}/msd_histogram.pdf',
                     bbox_inches='tight', pad_inches=0.1)
+    r2_ind_all, r2_add_all = calc_total_R2()
+    print("HSA R2 across all trials: ", r2_ind_all)
+    print("Additivity R2 across all trials: ", r2_add_all)
 
 
 if __name__ == '__main__':
     main()
+    #calc_r()
