@@ -9,6 +9,7 @@ dir:
   raw_placebo_data: "data/raw/placebo"
   combo_data: "data/trials"
   placebo_data: "data/placebo"
+  experimental_data: "data/experimental"
   # analysis directories
   tables: "tables"
   PFS_prediction: "tables/PFS_prediction"
@@ -16,3 +17,4 @@ dir:
   figures: "figures"
 
 cox_result: "tables/cox_ph_test.csv"
+relative_doses: "data/differences_in_doses.xlsx"
