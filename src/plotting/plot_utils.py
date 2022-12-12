@@ -1,5 +1,11 @@
 import pandas as pd
 from scipy.interpolate import interp1d
+import yaml
+
+with open('config.yaml', 'r') as f:
+    CONFIG = yaml.safe_load(f)
+
+COX_RESULT = CONFIG['cox_result']
 
 
 def interpolate(df, x='Time', y='Survival', kind='zero'):
@@ -17,31 +23,31 @@ def interpolate(df, x='Time', y='Survival', kind='zero'):
     """    
     return interp1d(df[x], df[y], kind=kind, fill_value='extrapolate')
 
-def import_input_data():
+
+def import_input_data() -> pd.DataFrame:
     """Import input data excluding supplementary combinations.
 
     Returns:
         (str, pd.DataFrame): a tuple of input directory path and input data
     """
-    indir = '../data/PFS_predictions/'
-    cox_df = pd.read_csv(indir + 'cox_ph_test.csv', index_col=False)
+    cox_df = pd.read_csv(COX_RESULT, index_col=False)
     # remove supplementary
     cox_df = cox_df[cox_df['Figure'] != 'suppl'].reset_index()
-    return indir, cox_df
+    return cox_df
 
 
-def import_input_data_include_suppl():
+def import_input_data_include_suppl() -> pd.DataFrame:
     """Import input data including supplementary combinations.
 
     Returns:
         (str, pd.DataFrame): a tuple of input directory path and input data
     """
-    indir = '../data/PFS_predictions/'
-    cox_df = pd.read_csv(indir + 'cox_ph_test.csv', index_col=False)
-    return indir, cox_df
+    cox_df = pd.read_csv(COX_RESULT, index_col=False)
+    return cox_df
 
 
-def set_figsize(scale, rows, cols, spacing_width_scale=0.2, spacing_height_scale=0.2):
+def set_figsize(scale: float, rows: int, cols: int, 
+                spacing_width_scale=0.2, spacing_height_scale=0.2):
     """Set figure size.
 
     Args:
@@ -69,7 +75,7 @@ def set_figsize(scale, rows, cols, spacing_width_scale=0.2, spacing_height_scale
     return (fig_width, fig_height)
 
 
-def get_model_colors():
+def get_model_colors() -> dict:
     """Returns preset colors for trial arms. Keywords are HSA, additive, control, experimental, and combo.
 
     Returns:

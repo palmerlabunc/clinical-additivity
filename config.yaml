@@ -1,0 +1,20 @@
+metadata_sheet:
+  combo: "data/combination_trial_sheet.txt"
+  combo_seed: "data/combination_trial_sheet_with_seed.txt"
+  placebo: "data/placebo_trial_sheet.txt"
+
+dir:
+  # data directories
+  raw_combo_data: "data/raw/trials"
+  raw_placebo_data: "data/raw/placebo"
+  combo_data: "data/trials"
+  placebo_data: "data/placebo"
+  experimental_data: "data/experimental"
+  # analysis directories
+  tables: "tables"
+  PFS_prediction: "tables/PFS_prediction"
+  temp: "tables/temp"
+  figures: "figures"
+
+cox_result: "tables/cox_ph_test.csv"
+relative_doses: "data/differences_in_doses.xlsx"

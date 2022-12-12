@@ -4,6 +4,15 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 import warnings
+import yaml
+
+with open('config.yaml', 'r') as f:
+    CONFIG = yaml.safe_load(f)
+
+DOSE_DIFF_SHEET = CONFIG['relative_doses']
+FIG_DIR = CONFIG['dir']['figures']
+
+
 warnings.filterwarnings("ignore")
 
 
@@ -14,7 +23,7 @@ def import_dose_data():
     Returns:
         pd.DataFrame: relative dose data
     """    
-    df = pd.read_excel('../data/trials/differences_in_doses.xlsx',
+    df = pd.read_excel(DOSE_DIFF_SHEET,
                        sheet_name='relative', header=0, index_col=None, engine='openpyxl')
     cat_order = CategoricalDtype(['Main', 'Suppl', 'No'], ordered=True)
     df['Included in Analysis'] = df['Included in Analysis'].astype(cat_order)
@@ -24,7 +33,7 @@ def import_dose_data():
 
 
 def plot_doses_difference():
-    """_summary_
+    """Plot bar plot of relative doses between monotherapy and combination arm.
 
     Returns:
         plt.figure: plotted figure
@@ -38,3 +47,12 @@ def plot_doses_difference():
     ax.set_ylabel('Relative Dose')
     ax.set_xlabel('Combinations')
     return fig
+
+
+def main():
+    fig = plot_doses_difference()
+    fig.savefig(f'{FIG_DIR}/relative_doses.pdf')
+
+
+if __name__ == '__main__':
+    main()

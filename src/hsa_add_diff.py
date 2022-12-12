@@ -2,8 +2,18 @@ import numpy as np
 import pandas as pd
 from coxhazard_test import get_cox_results, create_ipd
 from utils import interpolate
+from lognormal_fitting import fit_lognormal
+from plotting.plot_hsa_add_diff import plot_hsa_add_diff_vs_lognormal, corr_hsa_add_diff_vs_lognormal
 from plotting.plot_utils import import_input_data
-from pathlib import Path
+import yaml
+
+with open('config.yaml', 'r') as f:
+    CONFIG = yaml.safe_load(f)
+
+COMBO_DATA_DIR = CONFIG['dir']['combo_data']
+PFS_PRED_DIR = CONFIG['dir']['PFS_prediction']
+FIG_DIR = CONFIG['dir']['figures']
+TABLE_DIR = CONFIG['dir']['tables']
 
 
 def hsa_add_diff():
@@ -14,7 +24,7 @@ def hsa_add_diff():
     Returns:
         pd.DataFrame: difference between HSA and additivity
     """    
-    indir, cox_df = import_input_data()
+    cox_df = import_input_data()
     diff_df = pd.DataFrame(index=cox_df.index, columns=[
                            'HSA - Control', 'Additivity - HSA',
                            'p', 'HR', 'HRlower', 'HRupper'])
@@ -22,14 +32,13 @@ def hsa_add_diff():
     for i in range(cox_df.shape[0]):
         name_a = cox_df.at[i, 'Experimental']
         name_b = cox_df.at[i, 'Control']
-        path = cox_df.at[i, 'Path'] + '/'
 
         # import data
-        control = pd.read_csv(path + f'{name_b}.clean.csv')
+        control = pd.read_csv(f'{COMBO_DATA_DIR}/{name_b}.clean.csv')
         independent = pd.read_csv(
-            indir + f'{name_a}-{name_b}_combination_predicted_ind.csv')
+            f'{PFS_PRED_DIR}/{name_a}-{name_b}_combination_predicted_ind.csv')
         additive = pd.read_csv(
-            indir + f'{name_a}-{name_b}_combination_predicted_add.csv')
+            f'{PFS_PRED_DIR}/{name_a}-{name_b}_combination_predicted_add.csv')
         tmax = np.amin(
             [control['Time'].max(), independent['Time'].max(), additive['Time'].max()])
 
@@ -68,7 +77,7 @@ def added_benefit_hsa_add_syn():
     Returns:
         pd.DataFrame: result dataframe
     """    
-    indir, cox_df = import_input_data()
+    cox_df = import_input_data()
     diff_df = pd.DataFrame(index=cox_df.index, 
                            columns=['Combo - Control', 
                                     'HSA - Control', 
@@ -82,15 +91,14 @@ def added_benefit_hsa_add_syn():
         name_a = cox_df.at[i, 'Experimental']
         name_b = cox_df.at[i, 'Control']
         name_ab = cox_df.at[i, 'Combination']
-        path = cox_df.at[i, 'Path'] + '/'
 
         # import data
-        control = pd.read_csv(path + f'{name_b}.clean.csv')
-        obs_combo = pd.read_csv(path + f'{name_ab}.clean.csv')
+        control = pd.read_csv(f'{COMBO_DATA_DIR}/{name_b}.clean.csv')
+        obs_combo = pd.read_csv(f'{COMBO_DATA_DIR}/{name_ab}.clean.csv')
         independent = pd.read_csv(
-            indir + f'{name_a}-{name_b}_combination_predicted_ind.csv')
+            f'{PFS_PRED_DIR}/{name_a}-{name_b}_combination_predicted_ind.csv')
         additive = pd.read_csv(
-            indir + f'{name_a}-{name_b}_combination_predicted_add.csv')
+            f'{PFS_PRED_DIR}/{name_a}-{name_b}_combination_predicted_add.csv')
         tmax = np.amin(
             [control['Time'].max(), independent['Time'].max(), additive['Time'].max()])
         f_ctrl = interpolate(control, x='Time', y='Survival')
@@ -108,13 +116,20 @@ def added_benefit_hsa_add_syn():
         diff_df.at[i, 'Combo - Additivity'] = sum(
             f_obs(timepoints) - f_add(timepoints))/n
         
-        diff_df.round(5).to_csv('../analysis/additivity_HSA_similarity/difference.csv', index=False)
     return diff_df
 
 
+def main():
+    added_df = added_benefit_hsa_add_syn()
+    added_df.round(5).to_csv(
+        f'{TABLE_DIR}/added_benefit_hsa_add_syn.csv', index=False)
+    lognorm_df = fit_lognormal()
+    diff_df = hsa_add_diff()
+    r, p = corr_hsa_add_diff_vs_lognormal(lognorm_df, diff_df)
+    print(f'pearsonr={r}\npvalue={p}')
+    fig = plot_hsa_add_diff_vs_lognormal(lognorm_df, diff_df)
+    fig.savefig(f'{FIG_DIR}/hsa_additivity_sigma.pdf')
+
+
 if __name__ == '__main__':
-    #hsa_add_diff()
-    outdir = '../analysis/additivity_HSA_similarity/'
-    new_directory = Path(outdir)
-    new_directory.mkdir(parents=True, exist_ok=True)
-    added_benefit_hsa_add_syn()
+    main()

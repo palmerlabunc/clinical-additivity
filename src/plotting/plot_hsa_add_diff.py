@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import matplotlib.ticker as plticker
 import seaborn as sns
 from scipy.stats import linregress, pearsonr
-from plot_utils import import_input_data, interpolate, get_model_colors
+from .plot_utils import get_model_colors
 
 
 def plot_hsa_add_diff_vs_lognormal(lognorm_df, diff_df):

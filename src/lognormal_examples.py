@@ -2,6 +2,17 @@ import numpy as np
 import pandas as pd
 from lognormal_fitting import lognormal_survival
 from hsa_additivity_model import predict_both
+from plotting.plot_lognormal_examples import plot_lognormal_examples
+import yaml
+import warnings
+
+
+with open('config.yaml', 'r') as f:
+    CONFIG = yaml.safe_load(f)
+
+FIG_DIR = CONFIG['dir']['figures']
+
+warnings.filterwarnings("ignore")
 
 def get_lognorm_survival_dataframe(tmax, n, mu, sigma):
     """Generate survival dataframe for lognormal survival curve.
@@ -43,3 +54,13 @@ def get_lognormal_examples(tmax, n, mu_a, mu_b, sigma, rho=0.3):
     add = add.append({'Time': 0, 'Survival': 100}, ignore_index=True)
     return {'A': drugA, 'B': drugB, 'HSA': hsa, 'Additivity': add}
 
+
+def main():
+    less_variable = get_lognormal_examples(20, 500, 2, 2.2, 0.5)
+    more_variable = get_lognormal_examples(20, 500, 1, 1.5, 2)
+    fig = plot_lognormal_examples(less_variable, more_variable)
+    fig.savefig(f'{FIG_DIR}/explain_HSA_additive_difference.pdf')
+
+
+if __name__ == '__main__':
+    main()

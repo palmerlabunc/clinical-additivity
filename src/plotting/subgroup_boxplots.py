@@ -3,9 +3,16 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 import matplotlib.ticker as plticker
-from .plot_utils import import_input_data
+from plot_utils import import_input_data
 from scipy.stats import wilcoxon
 import warnings
+import yaml
+
+with open('config.yaml', 'r') as f:
+    CONFIG = yaml.safe_load(f)
+
+FIG_DIR = CONFIG['dir']['figures']
+
 warnings.filterwarnings("ignore")
 
 def plot_box(df, group, order, model='add'):
@@ -55,7 +62,7 @@ def plot_box_wrapper(feature):
     Returns:
         plt.figure: boxplot figure
     """    
-    _, df = import_input_data()
+    df = import_input_data()
     df.loc[:, feature] = df[feature].replace({0: 'No', 1: 'Yes'})
     _, p_yes = wilcoxon(np.log(df[df[feature] == 'Yes']['HR_add']))
     _, p_no = wilcoxon(np.log(df[df[feature] == 'No']['HR_add']))
@@ -100,7 +107,7 @@ def plot_HR_boxplot():
     Returns:
         plt.figure: plotted figure
     """
-    _, df = import_input_data()
+    df = import_input_data()
     med = df['HR(combo/control)'].median()
     df.loc[:, 'HR Lower Median'] = 'Yes'
     df.loc[df['HR(combo/control)'] > med, 'HR Lower Median'] = 'No'
@@ -114,3 +121,25 @@ def plot_HR_boxplot():
     ax.text(2, 1, 'p={:.3f}'.format(p_high), size=9)
     ax.set_title('Net benefit of combo')
     return fig
+
+
+def main():
+    figd_ici = plot_ici_boxplot()
+    figd_ici.savefig(f"{FIG_DIR}/ici_boxplot.pdf",
+                      bbox_inches='tight', pad_inches=0.1)
+    # Anti-angiogenesis combination
+    figd_angio = plot_angio_boxplot()
+    figd_angio.savefig(f"{FIG_DIR}/angiogenesis_boxplot.pdf",
+                        bbox_inches='tight', pad_inches=0.1)
+    # Monotherapy Approval
+    figd_mono = plot_mono_approval_boxplot()
+    figd_mono.savefig(f"{FIG_DIR}/monotherapy_approval_boxplot.pdf",
+                       bbox_inches='tight', pad_inches=0.1)
+    # HR < 0.6?
+    figd_hr = plot_HR_boxplot()
+    figd_hr.savefig(f"{FIG_DIR}/HRmedian_boxplot.pdf",
+                     bbox_inches='tight', pad_inches=0.1)
+
+
+if __name__ == '__main__':
+    main()

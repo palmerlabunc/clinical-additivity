@@ -2,12 +2,19 @@ import pandas as pd
 import numpy as np
 from pathlib import Path
 from utils import populate_N_patients, fit_rho3
+import yaml
 
-OUTDIR = '../data/PFS_predictions/'
+with open('config.yaml', 'r') as f:
+    CONFIG = yaml.safe_load(f)
+
+COMBO_SEED_SHEET = CONFIG['metadata_sheet']['combo_seed']
+COMBO_DATA_DIR = CONFIG['dir']['combo_data']
+OUTDIR = CONFIG['dir']['PFS_prediction']
 new_directory = Path(OUTDIR)
 new_directory.mkdir(parents=True, exist_ok=True)
 
-def sample_joint_response_add(ori_a, ori_b, subtracted, scan_time):
+def sample_joint_response_add(ori_a: pd.DataFrame, ori_b: pd.DataFrame, 
+                              subtracted: str, scan_time: float) -> list:
     """Calculates predicted PFS time for n-patients in combination therapy under additivity.
 
     Args:
@@ -33,7 +40,7 @@ def sample_joint_response_add(ori_a, ori_b, subtracted, scan_time):
     return sorted(predicted, reverse=True)
 
 
-def sample_joint_response(ori_a, ori_b):
+def sample_joint_response(ori_a: pd.DataFrame, ori_b: pd.DataFrame) -> list:
     """ Calculate predicted PFS time for n-patients in combination therapy under HSA.
 
     Args:
@@ -46,7 +53,17 @@ def sample_joint_response(ori_a, ori_b):
     return sorted(np.maximum(ori_a, ori_b), reverse=True)
 
 
-def set_tmax(df_a, df_b, df_ab):
+def set_tmax(df_a: pd.DataFrame, df_b: pd.DataFrame, df_ab: pd.DataFrame) -> float:
+    """Find minimum of the maximum follow-up time between trials.
+
+    Args:
+        df_a (pd.DataFrame): Survival data for drug A
+        df_b (pd.DataFrame): Survival data for drug B
+        df_ab (pd.DataFrame): Survival data for A+B
+
+    Returns:
+        float: max time
+    """    
     if df_a.at[0, 'Survival'] < 5 and df_b.at[0, 'Survival'] < 5:
         tmax = min(
             max(df_a.at[0, 'Time'], df_b.at[0, 'Time']), df_ab.at[0, 'Time'])
@@ -55,8 +72,9 @@ def set_tmax(df_a, df_b, df_ab):
     return tmax
 
 
-def predict_both(df_a, df_b, name_a, name_b, subtracted, scan_time, 
-                 df_ab=None, N=5000, rho=0.3, seed_ind=0, seed_add=0, save=True):
+def predict_both(df_a: pd.DataFrame, df_b: pd.DataFrame, 
+                 name_a: str, name_b: str, subtracted: str, scan_time: float, 
+                 df_ab=None, N=5000, rho=0.3, seed_ind=0, seed_add=0, save=True) -> tuple:
     """ Predict combination effect using HSA and additivity model and writes csv output.
 
     Args:
@@ -103,48 +121,62 @@ def predict_both(df_a, df_b, name_a, name_b, subtracted, scan_time,
     additivity.loc[additivity['Time'] > tmax, 'Time'] = tmax
 
     if save == True:
-        additivity.round(5).to_csv(
-            OUTDIR + '{0}-{1}_combination_predicted_add.csv'.format(name_a, name_b), index=False)
-        independent.round(5).to_csv(
-            OUTDIR + '{0}-{1}_combination_predicted_ind.csv'.format(name_a, name_b), index=False)
+        additivity.round(5).to_csv(f'{OUTDIR}/{name_a}-{name_b}_combination_predicted_add.csv', 
+                                   index=False)
+        independent.round(5).to_csv(f'{OUTDIR}/{name_a}-{name_b}_combination_predicted_ind.csv',
+                                    index=False)
     
     return (independent, additivity)
 
 
+def subtract_which_scan_time(scan_a: int, scan_b: int) -> tuple:
+    """Determines which monotherapy scan time to subtract.
+
+    Args:
+        scan_a (int): Scan time of drug A (Experimental)
+        scan_b (int): Scan time of drug B (Control)
+
+    Returns:
+        tuple: ('a' or 'b', scan_time)
+    """    
+    if scan_a == 9999:
+        scan_a = -9999
+    if scan_b == 9999:
+        scan_b = -9999
+    if scan_a < scan_b:
+        scan_time = scan_b
+        subtracted = 'b'
+    else:
+        scan_time = scan_a
+        subtracted = 'a'
+    return (subtracted, scan_time)
+
+
 def main():
-    indf = pd.read_csv('../data/trials/final_input_list_with_seed.txt', sep='\t')
+    indf = pd.read_csv(COMBO_SEED_SHEET, sep='\t')
     for i in indf.index:
-        print(i)
         name_a = indf.at[i, 'Experimental']
         name_b = indf.at[i, 'Control']
         name_ab = indf.at[i, 'Combination']
-        path = indf.at[i, 'Path'] + '/'
         corr = indf.at[i, 'Corr']  # experimental spearman correlation value
         # random generator seed that results in median of 100 simulations
         seed_ind = indf.at[i, 'ind_median_run']
         seed_add = indf.at[i, 'add_median_run']
-        df_a = pd.read_csv(path + name_a + '.clean.csv', 
+        df_a = pd.read_csv(f'{COMBO_DATA_DIR}/{name_a}.clean.csv',
                            header=0, index_col=False)
-        df_b = pd.read_csv(path + name_b + '.clean.csv', 
+        df_b = pd.read_csv(f'{COMBO_DATA_DIR}/{name_b}.clean.csv',
                            header=0, index_col=False)
-        df_ab = pd.read_csv(path + name_ab + '.clean.csv',
+        df_ab = pd.read_csv(f'{COMBO_DATA_DIR}/{name_ab}.clean.csv',
                             header=0, index_col=False)
         # subtract initial scan time of the larger one
         scan_a = indf.at[i, 'Experimental First Scan Time']
         scan_b = indf.at[i, 'Control First Scan Time']
-        if scan_a == 9999:
-            scan_a = -9999
-        if scan_b == 9999:
-            scan_b = -9999
-        if scan_a < scan_b:
-            scan_time = scan_b
-            subtracted = 'b'
-        else:
-            scan_time = scan_a
-            subtracted = 'a'
+
+        subtracted, scan_time = subtract_which_scan_time(scan_a, scan_b)
 
         predict_both(df_a, df_b, name_a, name_b, subtracted, scan_time,
                      df_ab=df_ab, rho=corr, seed_ind=seed_ind, seed_add=seed_add)
+
 
 if __name__ == "__main__":
     main()

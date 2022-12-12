@@ -3,8 +3,17 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 import matplotlib.ticker as plticker
-from .plot_utils import get_model_colors, import_input_data_include_suppl
+from plot_utils import get_model_colors, import_input_data_include_suppl
 import warnings
+import yaml
+
+with open('config.yaml', 'r') as f:
+    CONFIG = yaml.safe_load(f)
+
+COMBO_DATA_DIR = CONFIG['dir']['combo_data']
+PFS_PRED_DIR = CONFIG['dir']['PFS_prediction']
+FIG_DIR = CONFIG['dir']['figures']
+
 warnings.filterwarnings("ignore")
 
 
@@ -82,7 +91,7 @@ def plot_survivals(df_control, df_exp, df_combo, df_add, df_ind, ax, label=None)
 
 
 def plot_additivity_suppl():
-    indir, cox_df = import_input_data_include_suppl()
+    cox_df = import_input_data_include_suppl()
     tmp = cox_df[(cox_df['Model'] == 'additive') |
                  (cox_df['Model'] == 'synergy')]
 
@@ -100,16 +109,15 @@ def plot_additivity_suppl():
         name_a = tmp.at[i, 'Experimental']
         name_b = tmp.at[i, 'Control']
         name_ab = tmp.at[i, 'Combination']
-        path = tmp.at[i, 'Path'] + '/'
 
         # import data
-        obs_ab = pd.read_csv(path + name_ab + '.clean.csv')
-        obs_exp = pd.read_csv(path + name_a + '.clean.csv')
-        obs_ctrl = pd.read_csv(path + name_b + '.clean.csv')
+        obs_ab = pd.read_csv(f'{COMBO_DATA_DIR}/{name_ab}.clean.csv')
+        obs_exp = pd.read_csv(f'{COMBO_DATA_DIR}/{name_a}.clean.csv')
+        obs_ctrl = pd.read_csv(f'{COMBO_DATA_DIR}/{name_b}.clean.csv')
         independent = pd.read_csv(
-            indir + '{0}-{1}_combination_predicted_ind.csv'.format(name_a, name_b))
+            f'{PFS_PRED_DIR}/{name_a}-{name_b}_combination_predicted_ind.csv')
         additive = pd.read_csv(
-            indir + '{0}-{1}_combination_predicted_add.csv'.format(name_a, name_b))
+            f'{PFS_PRED_DIR}/{name_a}-{name_b}_combination_predicted_add.csv')
 
         plot_survivals(obs_ctrl, obs_exp, obs_ab, additive,
                     independent, flat_axes[i], label=name_ab)
@@ -118,7 +126,7 @@ def plot_additivity_suppl():
 
 
 def plot_between_hsa_suppl():
-    indir, cox_df = import_input_data_include_suppl()
+    cox_df = import_input_data_include_suppl()
     tmp1 = cox_df[(cox_df['Model'] == 'between')]
     # sort by cancer types
     tmp1 = tmp1.sort_values('Combination').reset_index(drop=True)
@@ -141,18 +149,29 @@ def plot_between_hsa_suppl():
         name_a = tmp.at[i, 'Experimental']
         name_b = tmp.at[i, 'Control']
         name_ab = tmp.at[i, 'Combination']
-        path = tmp.at[i, 'Path'] + '/'
 
         # import data
-        obs_ab = pd.read_csv(path + name_ab + '.clean.csv')
-        obs_exp = pd.read_csv(path + name_a + '.clean.csv')
-        obs_ctrl = pd.read_csv(path + name_b + '.clean.csv')
-        independent = pd.read_csv(
-            indir + '{0}-{1}_combination_predicted_ind.csv'.format(name_a, name_b))
-        additive = pd.read_csv(
-            indir + '{0}-{1}_combination_predicted_add.csv'.format(name_a, name_b))
+        obs_ab = pd.read_csv(f'{COMBO_DATA_DIR}/{name_ab}.clean.csv')
+        obs_exp = pd.read_csv(f'{COMBO_DATA_DIR}/{name_a}.clean.csv')
+        obs_ctrl = pd.read_csv(f'{COMBO_DATA_DIR}/{name_b}.clean.csv')
+        independent = pd.read_csv(f'{PFS_PRED_DIR}/{name_a}-{name_b}_combination_predicted_ind.csv')
+        additive = pd.read_csv(f'{PFS_PRED_DIR}/{name_a}-{name_b}_combination_predicted_add.csv')
 
         plot_survivals(obs_ctrl, obs_exp, obs_ab, additive,
                     independent, flat_axes[i], label=name_ab)
 
     return fig
+
+
+def main():
+    fig_add = plot_additivity_suppl()
+    fig_btn = plot_between_hsa_suppl()
+
+    fig_add.savefig(f'{FIG_DIR}/suppl_additive_survival_plots.pdf',
+                    bbox_inches='tight', pad_inches=0.1)
+    fig_btn.savefig(f'{FIG_DIR}/suppl_between_hsa_survival_plots.pdf',
+                    bbox_inches='tight', pad_inches=0.1)
+
+
+if __name__ == '__main__':
+    main()
