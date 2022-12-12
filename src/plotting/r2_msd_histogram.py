@@ -58,7 +58,7 @@ def prepare_data_for_r2_histogram(cox_df: pd.DataFrame) -> pd.DataFrame:
         f_ind = interpolate(x='Time', y='Survival', df=independent)
         f_add = interpolate(x='Time', y='Survival', df=additive)
 
-        time_points = np.linspace(0, tmax, 100)
+        time_points = np.linspace(0, tmax, 5000)
         ori = f_obs(time_points)
         ind = f_ind(time_points)
         add = f_add(time_points)
