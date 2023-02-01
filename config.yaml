@@ -1,15 +1,18 @@
 metadata_sheet:
-  combo: "data/combination_trial_sheet.txt"
-  combo_seed: "data/combination_trial_sheet_with_seed.txt"
+  combo: "data/approved_combination_trial_sheet.txt"
+  combo_seed: "data/approved_combination_trial_sheet_with_seed.txt"
+  all_phase3: "data/all_phase3_combination_trial_sheet.txt"
   placebo: "data/placebo_trial_sheet.txt"
 
 dir:
   # data directories
-  raw_combo_data: "data/raw/trials"
+  raw_combo_data: "data/raw/approved_trials"
   raw_placebo_data: "data/raw/placebo"
-  combo_data: "data/trials"
+  combo_data: "data/approved_trials"
   placebo_data: "data/placebo"
   experimental_data: "data/experimental"
+  raw_all_phase3_data: "data/raw/all_phase3_trials"
+  all_phase3_data: "data/all_phase3_trials"
   # analysis directories
   tables: "tables"
   PFS_prediction: "tables/PFS_prediction"

@@ -151,7 +151,8 @@ def draw_corr_cell(ctrp_df, cancer_type, drug1, drug2,
     sns.despine()
     sns.scatterplot(x=drug1, y=drug2, size=1, color='k', alpha=0.7,
                     data=dat, ax=ax)
-    ax.get_legend().remove()
+    if ax.get_legend() is not None:
+        ax.get_legend().remove()
     ax.set_xlabel(drug1 + ' ' + metric)
     ax.set_ylabel(drug2 + ' ' + metric)
     ax.set_xlim(0, 1.2)

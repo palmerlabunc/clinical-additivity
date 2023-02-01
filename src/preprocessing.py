@@ -11,11 +11,16 @@ with open('config.yaml', 'r') as f:
 
 COMBO_INPUT_SHEET = CONFIG['metadata_sheet']['combo']
 PLACEBO_INPUT_SHEET = CONFIG['metadata_sheet']['placebo']
+PHASE3_INPUT_SHEET = CONFIG['metadata_sheet']['all_phase3']
 
 RAW_COMBO_DIR = CONFIG['dir']['raw_combo_data']
 RAW_PLACEBO_DIR = CONFIG['dir']['raw_placebo_data']
+RAW_PHASE3_DIR = CONFIG['dir']['raw_all_phase3_data']
+
 COMBO_DATA_DIR = CONFIG['dir']['combo_data']
 PLACEBO_DATA_DIR = CONFIG['dir']['placebo_data']
+PHASE3_DATA_DIR = CONFIG['dir']['all_phase3_data']
+
 FIG_DIR = CONFIG['dir']['figures']
 
 def raw_import(filepath: str) -> pd.DataFrame:
@@ -109,14 +114,24 @@ def sanity_check_everything():
     fig.savefig(f'{FIG_DIR}/preprocess_sanity_check.png')
 
 
-def preprocess_everything():
-    indf = pd.read_csv(COMBO_INPUT_SHEET, sep='\t')
+def preprocess_combinations(indf_filepath: str, raw_dir: str, output_dir: str):
+    """_summary_
+
+    Args:
+        indf_filepath (str): metadata sheet filepath
+        raw_dir (str): raw file directory
+        output_dir (str): output directory for cleaned survival curves
+    """    
+    indf = pd.read_csv(indf_filepath, sep='\t')
     cols = ['Experimental', 'Control', 'Combination']
     for i in range(indf.shape[0]):
         for k in range(len(cols)):
             name = indf.at[i, cols[k]]
-            new = preprocess_survival_data(f'{RAW_COMBO_DIR}/{name}.csv')
-            new.round(5).to_csv(f'{COMBO_DATA_DIR}/{name}.clean.csv', index=False)
+            try:
+                new = preprocess_survival_data(f'{raw_dir}/{name}.csv')
+            except UnicodeDecodeError:
+                print(f"UnicodeDecodeError in {name}")
+            new.round(5).to_csv(f'{output_dir}/{name}.clean.csv', index=False)
 
 
 def preprocess_placebo():
@@ -147,5 +162,6 @@ def stand_alone():
 
 if __name__ == '__main__':
     sanity_check_everything()
-    preprocess_everything()
+    preprocess_combinations(COMBO_INPUT_SHEET, RAW_COMBO_DIR, COMBO_DATA_DIR)
+    #preprocess_combinations(PHASE3_INPUT_SHEET, RAW_PHASE3_DIR, PHASE3_DATA_DIR)
     preprocess_placebo()
