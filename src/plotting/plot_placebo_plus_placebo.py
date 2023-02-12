@@ -1,10 +1,18 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
+import yaml
+
+with open('config.yaml', 'r') as f:
+    CONFIG = yaml.safe_load(f)
+
+PLACEBO_INPUT_SHEET = CONFIG['metadata_sheet']['placebo']
+PLACEBO_DATA_DIR = CONFIG['dir']['placebo_data']
+FIG_DIR = CONFIG['dir']['figures']
 
 
 def plot_placebo_plus_placebo():
-    placebo_input = pd.read_csv('../data/placebo/placebo_input_list.txt',
+    placebo_input = pd.read_csv(PLACEBO_INPUT_SHEET,
                                 sep='\t', header=0)
     fig, axes = plt.subplots(3, 3, figsize=(5, 5), constrained_layout=True)
     axes = axes.flatten()
@@ -14,10 +22,8 @@ def plot_placebo_plus_placebo():
         ax = axes[i]
         sns.despine()
 
-        placebo_path = placebo_input.at[i, 'Path'] + '/'
-        #FIXME deal with path
         file_prefix = placebo_input.at[i, 'File prefix']
-        placebo = pd.read_csv(placebo_path + file_prefix +  '.clean.csv')
+        placebo = pd.read_csv(f'{PLACEBO_DATA_DIR}/{file_prefix}.clean.csv', header=0)
 
         ax.plot('Time', 'Survival', data=placebo, label='placebo', color='k', linestyle='--')
         for k in range(len(rho_list)):
@@ -34,7 +40,7 @@ def plot_placebo_plus_placebo():
         ax.set_yticks([0, 50, 100])
         ax.set_xlabel('Time (months)')
         ax.set_ylabel('Survival (%)')
-    fig.savefig('../figures/placebo_plus_palcebo.pdf')
+    fig.savefig(f'{FIG_DIR}/placebo_plus_palcebo.pdf')
     return fig
 
 

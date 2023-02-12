@@ -25,4 +25,3 @@ dependencies:
   - ca-certificates
   - certifi
   - openssl
-prefix: /Users/haeunhwangbo/anaconda3/envs/surv

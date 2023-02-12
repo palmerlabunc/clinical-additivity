@@ -99,7 +99,7 @@ def calc_correlation(model, results):
 
 def main():
     results = predict_success()
-    results.to_csv(f'{TABLE_DIR}/HR_predicted_vs_control.csv')
+    results.to_csv(f'{TABLE_DIR}/HR_predicted_vs_control.csv', index=False)
     r_hsa, p_hsa = calc_correlation('HSA', results)
     r_add, p_add = calc_correlation('additivity', results)
     print("r_hsa={0:.02f}, p_hsa={1:.03f}, r_add={2:.02f}, p_add={3:.03f}".format(

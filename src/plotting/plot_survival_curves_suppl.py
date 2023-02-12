@@ -98,8 +98,8 @@ def plot_additivity_suppl():
     # sort by cancer types
     tmp = tmp.sort_values(by=['Model', 'Combination'],
                           ascending=[False, True]).reset_index()
-
-    rows, cols = 6, 3
+    cols = 3
+    rows = int(np.ceil(tmp.shape[0]/cols))
     fig, axes = plt.subplots(rows, cols, sharey=True, 
                              figsize=(7, 10), subplot_kw=dict(box_aspect=0.5), dpi=300)
     sns.despine()
@@ -138,7 +138,8 @@ def plot_between_hsa_suppl():
                             True, True]).reset_index(drop=True)
     tmp = pd.concat([tmp1, tmp2], axis=0).reset_index(drop=True)
 
-    rows, cols = 8, 3
+    cols = 3
+    rows = int(np.ceil(tmp.shape[0]/cols))
 
     fig, axes = plt.subplots(rows, cols, sharey=True, figsize=(7, 13), 
                              subplot_kw=dict(box_aspect=0.5), dpi=300)
@@ -167,9 +168,9 @@ def main():
     fig_add = plot_additivity_suppl()
     fig_btn = plot_between_hsa_suppl()
 
-    fig_add.savefig(f'{FIG_DIR}/suppl_additive_survival_plots.pdf',
+    fig_add.savefig(f'{FIG_DIR}/all_phase3_suppl_additive_survival_plots.pdf',
                     bbox_inches='tight', pad_inches=0.1)
-    fig_btn.savefig(f'{FIG_DIR}/suppl_between_hsa_survival_plots.pdf',
+    fig_btn.savefig(f'{FIG_DIR}/all_phase3_suppl_between_hsa_survival_plots.pdf',
                     bbox_inches='tight', pad_inches=0.1)
 
 
