@@ -1,23 +1,34 @@
-metadata_sheet:
-  combo: "data/approved_combination_trial_sheet.txt"
-  combo_seed: "data/approved_combination_trial_sheet_with_seed.txt"
-  all_phase3: "data/all_phase3_combination_trial_sheet.txt"
-  placebo: "data/placebo_trial_sheet.txt"
+approved:
+  raw_dir: "data/raw/approved_trials"
+  data_dir: "data/approved_trials"
+  pred_dir: "tables/PFS_prediction"
+  table_dir: "tables/approved"
+  fig_dir: "figures/approved"
+  metadata_sheet: "data/approved_combination_trial_sheet.txt"
+  metadata_sheet_seed: "data/approved_combination_trial_sheet_with_seed.txt"
+  cox_result: "tables/approved/cox_ph_test.csv"
 
-dir:
-  # data directories
-  raw_combo_data: "data/raw/approved_trials"
-  raw_placebo_data: "data/raw/placebo"
-  combo_data: "data/approved_trials"
-  placebo_data: "data/placebo"
-  experimental_data: "data/experimental"
-  raw_all_phase3_data: "data/raw/all_phase3_trials"
-  all_phase3_data: "data/all_phase3_trials"
-  # analysis directories
-  tables: "tables"
-  PFS_prediction: "tables/PFS_prediction"
-  temp: "tables/temp"
-  figures: "figures"
+placebo:
+  raw_dir: "data/raw/placebo"
+  data_dir: "data/placebo"
+  pred_dir: "tables/PFS_prediction"
+  table_dir: "tables/placebo"
+  fig_dir: "figures/placebo"
+  metadata_sheet: "data/placebo_trial_sheet.txt"
+  metadata_sheet_seed: ""
 
-cox_result: "tables/cox_ph_test.csv"
+all_phase3:
+  raw_dir: "data/raw/all_phase3_trials"
+  data_dir: "data/all_phase3_trials"
+  pred_dir: "tables/PFS_prediction"
+  table_dir: "tables/all_phase3"
+  fig_dir: "figures/all_phase3"
+  metadata_sheet: "data/all_phase3_combination_trial_sheet.txt"
+  metadata_sheet_seed: "data/all_phase3_combination_trial_sheet_with_seed.txt"
+  cox_result: "tables/all_phase3/cox_ph_test.csv"
+
+table_dir: "tables"
+temp_dir: "tables/temp"
+fig_dir: "figures"
+experimental_dir: "data/experimental"
 relative_doses: "data/differences_in_doses.xlsx"

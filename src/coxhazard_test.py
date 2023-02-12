@@ -2,8 +2,10 @@ import pandas as pd
 import numpy as np
 from lifelines import CoxPHFitter
 from utils import interpolate
+from statsmodels.stats.multitest import multipletests
 import sys
 import yaml
+import argparse
 
 with open('config.yaml', 'r') as f:
     CONFIG = yaml.safe_load(f)
@@ -61,7 +63,14 @@ def get_cox_results(ipd_base: pd.DataFrame, ipd_test: pd.DataFrame) -> tuple:
     return tuple(cph.summary.loc['Arm', ['p', 'exp(coef)', 'exp(coef) lower 95%', 'exp(coef) upper 95%']])
 
 
-def cox_ph_test(input_df: pd.DataFrame) -> pd.DataFrame:
+def cox_ph_test(dataset: str) -> pd.DataFrame:
+    config_dict = CONFIG[dataset]
+    sheet = config_dict['metadata_sheet_seed']
+    data_dir = config_dict['data_dir']
+    raw_dir = config_dict['raw_dir']
+    pred_dir = config_dict['pred_dir']
+    
+    input_df = pd.read_csv(sheet, sep='\t')
     tmp = input_df
     # output dataframe
     cox_df = pd.DataFrame(index=tmp.index, 
@@ -76,19 +85,19 @@ def cox_ph_test(input_df: pd.DataFrame) -> pd.DataFrame:
         n_combo = tmp.at[i, 'N_combination']
         print(i, n_combo)
         # observed data
-        df_a = pd.read_csv(f'{COMBO_DATA_DIR}/{name_a}.clean.csv').dropna()
-        df_b = pd.read_csv(f'{COMBO_DATA_DIR}/{name_b}.clean.csv').dropna()
-        df_ab = pd.read_csv(f'{COMBO_DATA_DIR}/{name_ab}.clean.csv').dropna()
+        df_a = pd.read_csv(f'{data_dir}/{name_a}.clean.csv').dropna()
+        df_b = pd.read_csv(f'{data_dir}/{name_b}.clean.csv').dropna()
+        df_ab = pd.read_csv(f'{data_dir}/{name_ab}.clean.csv').dropna()
         
         try:
-            ipd_ab = pd.read_csv(f'{RAW_COMBO_DATA_DIR}/{name_ab}_indiv.csv')
+            ipd_ab = pd.read_csv(f'{raw_dir}/{name_ab}_indiv.csv')
             print("used IPD")
         except FileNotFoundError:
             ipd_ab = create_ipd(df_ab, n=n_combo)
 
         # import prediction
-        independent = pd.read_csv(f'{PFS_PRED_DIR}/{name_a}-{name_b}_combination_predicted_ind.csv').dropna()
-        additive = pd.read_csv(f'{PFS_PRED_DIR}/{name_a}-{name_b}_combination_predicted_add.csv').dropna()
+        independent = pd.read_csv(f'{pred_dir}/{name_a}-{name_b}_combination_predicted_ind.csv').dropna()
+        additive = pd.read_csv(f'{pred_dir}/{name_a}-{name_b}_combination_predicted_add.csv').dropna()
 
         tmax = np.amin([df_ab['Time'].max(), independent['Time'].max(), df_a['Time'].max(), df_b['Time'].max()])
         independent = independent[independent['Time'] < tmax]
@@ -130,19 +139,29 @@ def cox_ph_test(input_df: pd.DataFrame) -> pd.DataFrame:
 
     # assign figure
     cox_df.loc[:, 'Figure'] = cox_df['Model']
-    cox_df.loc[cox_df['Main analysis'] == 0, 'Figure'] = 'suppl'
+    #cox_df.loc[cox_df['Main analysis'] == 0, 'Figure'] = 'suppl'
 
     return cox_df
 
 
+def apply_fdr(df):
+    _, p_ind_adj, _, _ = multipletests(df['p_ind'], method='fdr_bh')
+    _, p_add_adj, _, _ = multipletests(df['p_add'], method='fdr_bh')
+    df.loc[:, 'p_ind_bh'] = p_ind_adj
+    df.loc[:, 'p_add_bh'] = p_add_adj
+    return df
+
+
 def main():
-    indf = pd.read_csv(COMBO_SEED_SHEET, sep='\t')
-    results = cox_ph_test(indf)
-    # default save when output file name is not given
-    if len(sys.argv) == 1:
-        results.to_csv(f'{OUTDIR}/cox_ph_test.csv', index=False)
-    else:
-        results.to_csv(sys.argv[1], index=False)
+    parser = argparse.ArgumentParser()
+    parser.add_argument('dataset', type=str, 
+                        help='Dataset to use (approved, all_phase3, placebo')
+    args = parser.parse_args()
+
+    outfile = CONFIG[args.dataset]['cox_result']
+    results = cox_ph_test(args.dataset)
+    results = apply_fdr(results)
+    results.to_csv(outfile, index=False)
 
 
 if __name__ == '__main__':

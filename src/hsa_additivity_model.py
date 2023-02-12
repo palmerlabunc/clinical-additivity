@@ -3,15 +3,10 @@ import numpy as np
 from pathlib import Path
 from utils import populate_N_patients, fit_rho3
 import yaml
+import argparse
 
 with open('config.yaml', 'r') as f:
     CONFIG = yaml.safe_load(f)
-
-COMBO_SEED_SHEET = CONFIG['metadata_sheet']['combo_seed']
-COMBO_DATA_DIR = CONFIG['dir']['combo_data']
-OUTDIR = CONFIG['dir']['PFS_prediction']
-new_directory = Path(OUTDIR)
-new_directory.mkdir(parents=True, exist_ok=True)
 
 def sample_joint_response_add(ori_a: pd.DataFrame, ori_b: pd.DataFrame, 
                               subtracted: str, scan_time: float) -> list:
@@ -74,7 +69,7 @@ def set_tmax(df_a: pd.DataFrame, df_b: pd.DataFrame, df_ab: pd.DataFrame) -> flo
 
 def predict_both(df_a: pd.DataFrame, df_b: pd.DataFrame, 
                  name_a: str, name_b: str, subtracted: str, scan_time: float, 
-                 df_ab=None, N=5000, rho=0.3, seed_ind=0, seed_add=0, save=True) -> tuple:
+                 df_ab=None, N=5000, rho=0.3, seed_ind=0, seed_add=0, save=True, outdir=None) -> tuple:
     """ Predict combination effect using HSA and additivity model and writes csv output.
 
     Args:
@@ -90,6 +85,7 @@ def predict_both(df_a: pd.DataFrame, df_b: pd.DataFrame,
         seed_ind (int): random generator seed for independent model. Defaults to 0.
         seed_add (int): random generator seed for additivity model. Defaults to 0.
         save (bool): export data to csv. Defaults to True.
+        outdir (str): directory to save exported data. If None, save in current directory. Defaults to None. 
     
     Returns:
         pd.DataFrame : HSA prediction
@@ -121,10 +117,16 @@ def predict_both(df_a: pd.DataFrame, df_b: pd.DataFrame,
     additivity.loc[additivity['Time'] > tmax, 'Time'] = tmax
 
     if save == True:
-        additivity.round(5).to_csv(f'{OUTDIR}/{name_a}-{name_b}_combination_predicted_add.csv', 
-                                   index=False)
-        independent.round(5).to_csv(f'{OUTDIR}/{name_a}-{name_b}_combination_predicted_ind.csv',
+        if outdir is not None:
+            additivity.round(5).to_csv(f'{outdir}/{name_a}-{name_b}_combination_predicted_add.csv', 
                                     index=False)
+            independent.round(5).to_csv(f'{outdir}/{name_a}-{name_b}_combination_predicted_ind.csv',
+                                        index=False)
+        else:
+            additivity.round(5).to_csv(f'{name_a}-{name_b}_combination_predicted_add.csv', 
+                                    index=False)
+            independent.round(5).to_csv(f'{name_a}-{name_b}_combination_predicted_ind.csv',
+                                        index=False)
     
     return (independent, additivity)
 
@@ -153,7 +155,17 @@ def subtract_which_scan_time(scan_a: int, scan_b: int) -> tuple:
 
 
 def main():
-    indf = pd.read_csv(COMBO_SEED_SHEET, sep='\t')
+    parser = argparse.ArgumentParser()
+    parser.add_argument('dataset', type=str, 
+                        help='Dataset to use (approved, all_phase3, placebo')
+    args = parser.parse_args()
+    
+    config_dict = CONFIG[args.dataset]
+    sheet = config_dict['metadata_sheet_seed']
+    data_dir = config_dict['data_dir']
+    pred_dir = config_dict['pred_dir']
+
+    indf = pd.read_csv(sheet, sep='\t')
     for i in indf.index:
         name_a = indf.at[i, 'Experimental']
         name_b = indf.at[i, 'Control']
@@ -162,11 +174,11 @@ def main():
         # random generator seed that results in median of 100 simulations
         seed_ind = indf.at[i, 'ind_median_run']
         seed_add = indf.at[i, 'add_median_run']
-        df_a = pd.read_csv(f'{COMBO_DATA_DIR}/{name_a}.clean.csv',
+        df_a = pd.read_csv(f'{data_dir}/{name_a}.clean.csv',
                            header=0, index_col=False)
-        df_b = pd.read_csv(f'{COMBO_DATA_DIR}/{name_b}.clean.csv',
+        df_b = pd.read_csv(f'{data_dir}/{name_b}.clean.csv',
                            header=0, index_col=False)
-        df_ab = pd.read_csv(f'{COMBO_DATA_DIR}/{name_ab}.clean.csv',
+        df_ab = pd.read_csv(f'{data_dir}/{name_ab}.clean.csv',
                             header=0, index_col=False)
         # subtract initial scan time of the larger one
         scan_a = indf.at[i, 'Experimental First Scan Time']
@@ -175,7 +187,7 @@ def main():
         subtracted, scan_time = subtract_which_scan_time(scan_a, scan_b)
 
         predict_both(df_a, df_b, name_a, name_b, subtracted, scan_time,
-                     df_ab=df_ab, rho=corr, seed_ind=seed_ind, seed_add=seed_add)
+                     df_ab=df_ab, rho=corr, seed_ind=seed_ind, seed_add=seed_add, outdir=pred_dir)
 
 
 if __name__ == "__main__":

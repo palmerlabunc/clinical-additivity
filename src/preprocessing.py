@@ -9,19 +9,6 @@ import yaml
 with open('config.yaml', 'r') as f:
     CONFIG = yaml.safe_load(f)
 
-COMBO_INPUT_SHEET = CONFIG['metadata_sheet']['combo']
-PLACEBO_INPUT_SHEET = CONFIG['metadata_sheet']['placebo']
-PHASE3_INPUT_SHEET = CONFIG['metadata_sheet']['all_phase3']
-
-RAW_COMBO_DIR = CONFIG['dir']['raw_combo_data']
-RAW_PLACEBO_DIR = CONFIG['dir']['raw_placebo_data']
-RAW_PHASE3_DIR = CONFIG['dir']['raw_all_phase3_data']
-
-COMBO_DATA_DIR = CONFIG['dir']['combo_data']
-PLACEBO_DATA_DIR = CONFIG['dir']['placebo_data']
-PHASE3_DATA_DIR = CONFIG['dir']['all_phase3_data']
-
-FIG_DIR = CONFIG['dir']['figures']
 
 def raw_import(filepath: str) -> pd.DataFrame:
     with open(filepath, 'r') as f:
@@ -97,32 +84,33 @@ def sanity_check_plot(ori: pd.DataFrame, new: pd.DataFrame, ax: plt.Axes) -> plt
     return ax
 
 
-def sanity_check_everything():
-    indf = pd.read_csv(COMBO_INPUT_SHEET, sep='\t')
+def sanity_check_everything(dataset: str):
+    config_dict = CONFIG[dataset]
+    sheet = config_dict['metadata_sheet']
+    raw_dir = config_dict['raw_dir']
+    fig_dir = config_dict['fig_dir']
+    indf = pd.read_csv(sheet, sep='\t')
     cols = ['Experimental', 'Control', 'Combination']
     fig, axes = plt.subplots(indf.shape[0], 3, figsize=(6, 30))
     for i in range(indf.shape[0]):
         for k in range(len(cols)):
             try:
                 name = indf.at[i, cols[k]]
-                ori = raw_import(f'{RAW_COMBO_DIR}/{name}.csv')
+                ori = raw_import(f'{raw_dir}/{name}.csv')
                 ori.columns = ['Time', 'Survival']
-                new = preprocess_survival_data(f'{RAW_COMBO_DIR}/{name}.csv')
+                new = preprocess_survival_data(f'{raw_dir}/{name}.csv')
                 axes[i, k] = sanity_check_plot(ori, new, axes[i, k])
             except:
                 print(name)
-    fig.savefig(f'{FIG_DIR}/preprocess_sanity_check.png')
+    fig.savefig(f'{fig_dir}/preprocess_sanity_check.png')
 
 
-def preprocess_combinations(indf_filepath: str, raw_dir: str, output_dir: str):
-    """_summary_
-
-    Args:
-        indf_filepath (str): metadata sheet filepath
-        raw_dir (str): raw file directory
-        output_dir (str): output directory for cleaned survival curves
-    """    
-    indf = pd.read_csv(indf_filepath, sep='\t')
+def preprocess_combinations(dataset: str):
+    config_dict = CONFIG[dataset]
+    sheet = config_dict['metadata_sheet']
+    raw_dir = config_dict['raw_dir']
+    output_dir = config_dict['data_dir']
+    indf = pd.read_csv(sheet, sep='\t')
     cols = ['Experimental', 'Control', 'Combination']
     for i in range(indf.shape[0]):
         for k in range(len(cols)):
@@ -135,11 +123,15 @@ def preprocess_combinations(indf_filepath: str, raw_dir: str, output_dir: str):
 
 
 def preprocess_placebo():
-    indf = pd.read_csv(PLACEBO_INPUT_SHEET, sep='\t', header=0)
+    config_dict = CONFIG['placebo']
+    sheet = config_dict['metadata_sheet']
+    raw_dir = config_dict['raw_dir']
+    output_dir = config_dict['data_dir']
+    indf = pd.read_csv(sheet, sep='\t', header=0)
     for i in range(indf.shape[0]):
         name = indf.at[i, 'File prefix']
-        new = preprocess_survival_data(f'{RAW_PLACEBO_DIR}/{name}.csv')
-        new.round(5).to_csv(f'{PLACEBO_DATA_DIR}/{name}.clean.csv', index=False)
+        new = preprocess_survival_data(f'{raw_dir}/{name}.csv')
+        new.round(5).to_csv(f'{output_dir}/{name}.clean.csv', index=False)
 
 
 def stand_alone():
@@ -161,7 +153,12 @@ def stand_alone():
 
 
 if __name__ == '__main__':
-    sanity_check_everything()
-    preprocess_combinations(COMBO_INPUT_SHEET, RAW_COMBO_DIR, COMBO_DATA_DIR)
-    #preprocess_combinations(PHASE3_INPUT_SHEET, RAW_PHASE3_DIR, PHASE3_DATA_DIR)
-    preprocess_placebo()
+    parser = argparse.ArgumentParser()
+    parser.add_argument('dataset', type=str, 
+                        help='Dataset to use (approved, all_phase3, placebo')
+    args = parser.parse_args()
+    if args.dataset == 'placebo':
+        preprocess_placebo()
+    else:
+        preprocess_combinations(args.dataset)
+        sanity_check_everything(args.dataset)
