@@ -29,6 +29,7 @@ for i in range(trials_df.shape[0]):
     pred_list.append(f'{name_a}-{name_b}')
 trials_list = list(trials_set)
 
+"""
 all_phase3_df = pd.read_csv(config['metadata_sheet']['all_phase3'], sep='\t', header=0)
 all_phase3_set = set()
 pred_list = []
@@ -40,7 +41,7 @@ for i in range(all_phase3_df.shape[0]):
     name_b = all_phase3_df.at[i, 'Control']
     pred_list.append(f'{name_a}-{name_b}')
 all_phase3_list = list(all_phase3_set)
-
+"""
 
 placebo_df = pd.read_csv(config['metadata_sheet']['placebo'], sep='\t', header=0)
 placebo_list = list(placebo_df['File prefix'])
@@ -48,7 +49,7 @@ placebo_list = list(placebo_df['File prefix'])
 # FILE LISTS
 ALL_TRIAL_FILES = expand(f"{COMBO_DATA_DIR}/{{trial}}.clean.csv", trial=trials_list)
 ALL_PLACEBO_FILES = expand(f"{PLACEBO_DATA_DIR}/{{placebo}}.clean.csv", placebo=placebo_list)
-ALL_PHASE3_FILES = expand(f"{PHASE3_DATA_DIR}/{{placebo}}.clean.csv", placebo=all_phase3_list)
+#ALL_PHASE3_FILES = expand(f"{PHASE3_DATA_DIR}/{{placebo}}.clean.csv", placebo=all_phase3_list)
 ALL_PRED_FILES =  expand(f"{PFS_PRED_DIR}/{{pred}}_combination_predicted_{{model}}.csv", 
                          pred=pred_list, model=['ind', 'add'])
 
@@ -88,12 +89,10 @@ rule preprocess:
     input:
         expand(f"{RAW_COMBO_DIR}/{{trial}}.csv", trial=trials_list),
         expand(f"{RAW_PLACEBO_DIR}/{{placebo}}.csv", placebo=placebo_list),
-        expand(f"{RAW_PHASE3_DIR}/{{phase3}}.csv", phase3=all_phase3_list)
     output:
         f"{FIG_DIR}/preprocess_sanity_check.png",
         ALL_TRIAL_FILES,
         ALL_PLACEBO_FILES,
-        ALL_PHASE3_FILES
     conda:
         "env/environment_short.yml"
     script:
