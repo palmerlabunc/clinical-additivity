@@ -208,7 +208,7 @@ def main():
     cell_info, drug_info, cancer_type, ctrp = import_ctrp_data()
     drug_pairs = [('5-Fluorouracil', 'Docetaxel'), ('5-Fluorouracil', 'Lapatinib'),
                 ('Gemcitabine', 'Oxaliplatin'), ('Methotrexate', 'Oxaliplatin'),
-                ('5-Fluorouracil', 'Topotecan')]
+                ('5-Fluorouracil', 'Topotecan'), ('Selumetinib', 'Dacarbazine')]
     for drug1, drug2 in drug_pairs:
         fig = draw_corr_cell(ctrp, cancer_type, drug1, drug2)
         fig.savefig(f'{FIG_DIR}/{drug1}_{drug2}_AUC_corr.pdf')
