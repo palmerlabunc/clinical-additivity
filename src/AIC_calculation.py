@@ -78,8 +78,8 @@ def calculate_NLL(df: pd.DataFrame, weibull_fit_fig=True) -> pd.DataFrame:
                 tmax = model['Time'].max() - tstep
             t_event = ipd_ab[ipd_ab['Event'] == 1]['Time'].values
             t_censor = ipd_ab[ipd_ab['Event'] == 0]['Time'].values
+            model = model.reindex(range(0, 5000, 20))  # sample to 1/10 number of patients
             wa, wb, wc = weibull3_params_from_digitized(model, tmax)
-
             # calculate negative log likelihood
             l_event = weibull3_pdf(t_event, wa, wb, wc) # use PDF for events
             l_censor = weibull3_survival(t_censor, wa, wb, wc) # use survival for censoring
