@@ -57,7 +57,9 @@ def preprocess_survival_data(filepath: str) -> pd.DataFrame:
         df = pd.read_csv(filepath, sep=',', header=None, names=['Time'])
         df = df.sort_values('Time', ascending=False).reset_index(drop=True)
         df.loc[:, 'Survival'] = np.linspace(0, 100, num=df.shape[0])
-
+    else:
+        print(filepath)
+        print("Something is wrong: should be only two columns")
     ### Clean up
     # normalize everything to [0, 100]
     df.loc[:, 'Survival'] = 100 * df['Survival'] / df['Survival'].max()
