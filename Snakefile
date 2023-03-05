@@ -3,15 +3,14 @@ configfile: "config.yaml"
 import pandas as pd
 import glob
 import os
+import numpy as np
 
-
-datasets = ['approved', 'placebo', 'all_phase3']
+datasets = ['approved', 'all_phase3']
 
 # DIRECTORIES
-#EXPERIMENTAL_DATA_DIR = config['dir']['experimental_data']
-#FIG_DIR = config['dir']['figures']
-#TABLE_DIR = config['dir']['tables']
-#PFS_PRED_DIR = config['dir']['PFS_prediction']
+EXPERIMENTAL_DATA_DIR = config['experimental_dir']
+FIG_DIR = config['fig_dir']
+TABLE_DIR = config['table_dir']
 
 def get_trial_list(dataset):
     trials_df = pd.read_csv(config[dataset]['metadata_sheet'], 
@@ -53,21 +52,19 @@ def get_pred_files(dataset):
     pred_list = get_pred_list(dataset)
     pred_dir = config[dataset]['pred_dir']
     return 
-placebo_df = pd.read_csv(config['metadata_sheet']['placebo'], sep='\t', header=0)
+
+placebo_df = pd.read_csv(config['placebo']['metadata_sheet'], sep='\t', header=0)
 placebo_list = list(placebo_df['File prefix'])
 
 # FILE LISTS
 ALL_APPROVED_TRIALS = expand("{output_file}", output_file=get_trial_files("approved"))
 ALL_PLACEBO_TRIALS = expand("{output_file}", output_file=get_trial_files("placebo"))
 ALL_PHASE3_TRIALS = expand("{output_file}", output_file=get_trial_files("all_phase3"))
-ALL_APPROVED_PRED_FILES =  expand(f"{PFS_PRED_DIR}/{{pred}}_combination_predicted_{{model}}.csv", 
-                                  pred=phase3_pred_list, model=['ind', 'add'])
-ALL_PHASE3_PRED_FILES =  expand(f"{PFS_PRED_DIR}/{{pred}}_combination_predicted_{{model}}.csv", 
-                                  pred=approved_pred_list, model=['ind', 'add'])
-
-# OTHER RESULTS
-#APPROVED_COX_RESULT = config['cox_result']
-#PHASE3_COX_RESULT = config['phase3_cox_result']
+ALL_APPROVED_PRED_FILES =  expand(f"{config['approved']['pred_dir']}/{{pred}}_combination_predicted_{{model}}.csv", 
+                                  pred=get_pred_list("approved"), model=['ind', 'add'])
+ALL_PHASE3_PRED_FILES =  expand(f"{config['all_phase3']['pred_dir']}/{{pred}}_combination_predicted_{{model}}.csv", 
+                                  pred=get_pred_list("all_phase3"), model=['ind', 'add'])
+ALL_PRED_FILES = list(set(ALL_APPROVED_PRED_FILES) | set(ALL_PHASE3_PRED_FILES))
 
 """"
 rule all:
@@ -101,51 +98,58 @@ rule all:
 
 rule preprocess:
     input:
-        lambda wildcards: expand("{input_file}", input_file=get_raw_files(wildcards.dataset))
+        expand("{input_file}", input_file=get_raw_files("approved")),
+        expand("{input_file}", input_file=get_raw_files("all_phase3")),
+        expand("{input_file}", input_file=get_raw_files("placebo"))
     output:
-        expand("{output_file}", output_file=get_trial_files("approved")),
-        expand("{output_file}", output_file=get_trial_files("all_phase3")),
-        expand("{output_file}", output_file=get_trial_files("placebo"))
+        ALL_APPROVED_TRIALS,
+        ALL_PLACEBO_TRIALS,
+        ALL_PHASE3_TRIALS,
+        f"{config['approved']['fig_dir']}/preprocess_sanity_check.png",
+        f"{config['all_phase3']['fig_dir']}/preprocess_sanity_check.png"
     conda:
         "env/environment_short.yml"
     shell:
-        "python src/preprocessing.py approved "
-        "python src/preprocessing.py placebo "
+        "python src/preprocessing.py approved; "
+        "python src/preprocessing.py placebo; "
         "python src/preprocessing.py all_phase3"
-
 
 rule find_seeds:
     input:
-        sheet = config['{dataset}']['metadata_sheet'],
-        pred_dir = config['{dataset}']['pred_dir'],
-        data_dir = config['{dataset}']['data_dir'],
         ALL_APPROVED_TRIALS,
         ALL_PHASE3_TRIALS
     output:
-        config['{dataset}']['metadata_sheet_seed']
+        f"{config['approved']['metadata_sheet_seed']}",
+        f"{config['all_phase3']['metadata_sheet_seed']}"
     shell:
-        "python src/find_median_sim.py -s {input.sheet} -p {input.pred_dir} -d {input.data_dir} -o {output}"
-"""
+        "python src/find_median_sim.py approved; "
+        "python src/find_median_sim.py all_phase3"        
+
 rule hsa_additivity_prediction:
     input:
-        config['{dataset}']['metadata_sheet_seed'],
-        ALL_APPROVED_TRIALS
+        config['approved']['metadata_sheet_seed'],
+        config['all_phase3']['metadata_sheet_seed'],
+        ALL_APPROVED_TRIALS,
+        ALL_PHASE3_TRIALS
     output:
-        ALL_APPROVED_PRED_FILES
-    script:
-        "src/hsa_additivity_model.py {dataset}"
+        ALL_PRED_FILES
+    shell:
+        "python src/hsa_additivity_model.py approved; "
+        "python src/hsa_additivity_model.py all_phase3"
 
 rule cox_ph_test:
     input:
-        ALL_APPROVED_PRED_FILES
+        ALL_PRED_FILES
     output:
-        COX_RESULT
+        config['approved']['cox_result'],
+        config['all_phase3']['cox_result']
     shell:
-        "python src/coxhazard_test.py {output}"
+        "python src/coxhazard_test.py approved; "
+        "python src/coxhazard_test.py all_phase3"
 
 rule forest_plot:
     input:
-        COX_RESULT
+        config['approved']['cox_result']
     output:
         f'{FIG_DIR}/forest_plot.pdf'
     shell:
@@ -153,7 +157,7 @@ rule forest_plot:
 
 rule main_survival_plots:
     input:
-        COX_RESULT,
+        config['approved']['cox_result'],
         ALL_APPROVED_PRED_FILES,
         ALL_APPROVED_TRIALS
     output:
@@ -165,7 +169,7 @@ rule main_survival_plots:
 
 rule qqplots:
     input:
-        COX_RESULT,
+        config['approved']['cox_result'],
         ALL_APPROVED_PRED_FILES,
         ALL_APPROVED_TRIALS
     output:
@@ -178,7 +182,7 @@ rule qqplots:
 
 rule performance_histogram:
     input:
-        COX_RESULT,
+        config['approved']['cox_result'],
         ALL_APPROVED_PRED_FILES,
         ALL_APPROVED_TRIALS
     output:
@@ -191,7 +195,7 @@ rule performance_histogram:
 
 rule subgroup_boxplots:
     input:
-        COX_RESULT
+        config['approved']['cox_result']
     output:    
         f"{FIG_DIR}/ici_boxplot.pdf",
         f"{FIG_DIR}/angiogenesis_boxplot.pdf",
@@ -222,7 +226,7 @@ rule suppl_survival_plots:
     input:
         ALL_APPROVED_TRIALS,
         ALL_APPROVED_PRED_FILES,
-        COX_RESULT
+        config['approved']['cox_result']
     output:
         f"{FIG_DIR}/all_phase3_suppl_additive_survival_plots.pdf",
         f"{FIG_DIR}/all_phase3_suppl_between_hsa_survival_plots.pdf"
@@ -233,18 +237,18 @@ rule predict_success:
     input:
         ALL_APPROVED_TRIALS,
         ALL_APPROVED_PRED_FILES,
-        COX_RESULT
+        f"{config['approved']['cox_result']}"
     output:
-        f'{FIG_DIR}/HR_combo_control_scatterplot.pdf',
-        f'{TABLE_DIR}/HR_predicted_vs_control.csv'
-    script:
-        "src/predict_success.py"
+        f"{config['approved']['fig_dir']}/HR_combo_control_scatterplot.pdf",
+        f"{config['approved']['table_dir']}/HR_predicted_vs_control.csv"
+    shell:
+        "python src/predict_success.py approved"
 
 rule HSA_additive_diff:
     input:
         ALL_APPROVED_TRIALS,
         ALL_APPROVED_PRED_FILES,
-        COX_RESULT
+        config['approved']['cox_result']
     output:
         f'{FIG_DIR}/explain_HSA_additive_difference.pdf',
         f'{TABLE_DIR}/added_benefit_hsa_add_syn.csv',
@@ -271,9 +275,21 @@ rule experimental_correlation:
 rule AIC:
     input:
         ALL_APPROVED_PRED_FILES,
-        COX_RESULT
+        f"{config['approved']['cox_result']}"
     output:
-        f'{TABLE_DIR}/approved_combinations_AIC.csv'
+        f"{config['approved']['table_dir']}/approved_combinations_AIC.csv"
     script:
         "src/AIC_calculation.py"
-"""
+
+rule all_phase3_predictive_power:
+    input:
+        ALL_PHASE3_TRIALS,
+        ALL_PHASE3_PRED_FILES,
+        f"{config['all_phase3']['metadata_sheet_seed']}"
+    output:
+        f"{config['all_phase3']['table_dir']}/predictive_power.csv",
+        f"{config['all_phase3']['fig_dir']}/roc_curve.pdf",
+        f"{config['all_phase3']['fig_dir']}/precision-recall_curve.pdf",
+        f"{config['all_phase3']['fig_dir']}/additivity_prob_success_swarm_plot.pdf"
+    script:
+        "src/all_phase3_predictive_power.py"
