@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 from lifelines import CoxPHFitter
+#from src.utils import interpolate
 from utils import interpolate
 from statsmodels.stats.multitest import multipletests
 import sys
@@ -10,15 +11,10 @@ import argparse
 with open('config.yaml', 'r') as f:
     CONFIG = yaml.safe_load(f)
 
-COMBO_SEED_SHEET = CONFIG['metadata_sheet']['combo_seed']
-COMBO_DATA_DIR = CONFIG['dir']['combo_data']
-RAW_COMBO_DATA_DIR = CONFIG['dir']['raw_combo_data']
-PFS_PRED_DIR = CONFIG['dir']['PFS_prediction']
-OUTDIR = CONFIG['dir']['tables']
-
 def create_ipd(df: pd.DataFrame, n=500) -> pd.DataFrame:
     #FIXME works fine as is, but can be problematic if you don't preprocess the additiivty
     # and HSA predictions that the survival curves go down to zero (which is misleading)
+    # In current version, you need to trim the end of the curve before tmax
     """Creates individual patient data (IPD) for a given survival curve.
     The survival curve is broken into n equal survival intervals. All events are considered
     as failed before the end of follow-up. All events after follow-up are considered
@@ -139,7 +135,7 @@ def cox_ph_test(dataset: str) -> pd.DataFrame:
 
     # assign figure
     cox_df.loc[:, 'Figure'] = cox_df['Model']
-    #cox_df.loc[cox_df['Main analysis'] == 0, 'Figure'] = 'suppl'
+    cox_df.loc[cox_df['Main analysis'] == 0, 'Figure'] = 'suppl'
 
     return cox_df
 
