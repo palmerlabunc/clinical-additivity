@@ -14,3 +14,5 @@ src/failed_trials/__pycache__/webscrape_from_pubmed.cpython-37.pyc
 *.pyc
 
 src/extract_IPD/.Rhistory
+
+*.ipynb
