@@ -3,16 +3,13 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 import matplotlib.ticker as plticker
-from plot_utils import get_model_colors, import_input_data_include_suppl
+from plot_utils import get_model_colors
 import warnings
+import argparse
 import yaml
 
 with open('config.yaml', 'r') as f:
     CONFIG = yaml.safe_load(f)
-
-COMBO_DATA_DIR = CONFIG['dir']['combo_data']
-PFS_PRED_DIR = CONFIG['dir']['PFS_prediction']
-FIG_DIR = CONFIG['dir']['figures']
 
 warnings.filterwarnings("ignore")
 
@@ -90,8 +87,7 @@ def plot_survivals(df_control, df_exp, df_combo, df_add, df_ind, ax, label=None)
     return ax
 
 
-def plot_additivity_suppl():
-    cox_df = import_input_data_include_suppl()
+def plot_additivity_suppl(cox_df: pd.DataFrame, data_dir: str, pred_dir: str) -> plt.figure:
     tmp = cox_df[(cox_df['Model'] == 'additive') |
                  (cox_df['Model'] == 'synergy')]
 
@@ -101,7 +97,7 @@ def plot_additivity_suppl():
     cols = 3
     rows = int(np.ceil(tmp.shape[0]/cols))
     fig, axes = plt.subplots(rows, cols, sharey=True, 
-                             figsize=(7, 10), subplot_kw=dict(box_aspect=0.5), dpi=300)
+                             figsize=(7, 10), subplot_kw=dict(box_aspect=0.5), dpi=600)
     sns.despine()
     flat_axes = axes.flatten()
 
@@ -111,13 +107,13 @@ def plot_additivity_suppl():
         name_ab = tmp.at[i, 'Combination']
 
         # import data
-        obs_ab = pd.read_csv(f'{COMBO_DATA_DIR}/{name_ab}.clean.csv')
-        obs_exp = pd.read_csv(f'{COMBO_DATA_DIR}/{name_a}.clean.csv')
-        obs_ctrl = pd.read_csv(f'{COMBO_DATA_DIR}/{name_b}.clean.csv')
+        obs_ab = pd.read_csv(f'{data_dir}/{name_ab}.clean.csv')
+        obs_exp = pd.read_csv(f'{data_dir}/{name_a}.clean.csv')
+        obs_ctrl = pd.read_csv(f'{data_dir}/{name_b}.clean.csv')
         independent = pd.read_csv(
-            f'{PFS_PRED_DIR}/{name_a}-{name_b}_combination_predicted_ind.csv')
+            f'{pred_dir}/{name_a}-{name_b}_combination_predicted_ind.csv')
         additive = pd.read_csv(
-            f'{PFS_PRED_DIR}/{name_a}-{name_b}_combination_predicted_add.csv')
+            f'{pred_dir}/{name_a}-{name_b}_combination_predicted_add.csv')
 
         plot_survivals(obs_ctrl, obs_exp, obs_ab, additive,
                     independent, flat_axes[i], label=name_ab)
@@ -125,8 +121,7 @@ def plot_additivity_suppl():
     return fig
 
 
-def plot_between_hsa_suppl():
-    cox_df = import_input_data_include_suppl()
+def plot_between_hsa_suppl(cox_df: pd.DataFrame, data_dir: str, pred_dir: str) -> plt.figure:
     tmp1 = cox_df[(cox_df['Model'] == 'between')]
     # sort by cancer types
     tmp1 = tmp1.sort_values('Combination').reset_index(drop=True)
@@ -142,7 +137,7 @@ def plot_between_hsa_suppl():
     rows = int(np.ceil(tmp.shape[0]/cols))
 
     fig, axes = plt.subplots(rows, cols, sharey=True, figsize=(7, 13), 
-                             subplot_kw=dict(box_aspect=0.5), dpi=300)
+                             subplot_kw=dict(box_aspect=0.5), dpi=600)
     sns.despine()
     flat_axes = axes.flatten()
 
@@ -152,11 +147,11 @@ def plot_between_hsa_suppl():
         name_ab = tmp.at[i, 'Combination']
 
         # import data
-        obs_ab = pd.read_csv(f'{COMBO_DATA_DIR}/{name_ab}.clean.csv')
-        obs_exp = pd.read_csv(f'{COMBO_DATA_DIR}/{name_a}.clean.csv')
-        obs_ctrl = pd.read_csv(f'{COMBO_DATA_DIR}/{name_b}.clean.csv')
-        independent = pd.read_csv(f'{PFS_PRED_DIR}/{name_a}-{name_b}_combination_predicted_ind.csv')
-        additive = pd.read_csv(f'{PFS_PRED_DIR}/{name_a}-{name_b}_combination_predicted_add.csv')
+        obs_ab = pd.read_csv(f'{data_dir}/{name_ab}.clean.csv')
+        obs_exp = pd.read_csv(f'{data_dir}/{name_a}.clean.csv')
+        obs_ctrl = pd.read_csv(f'{data_dir}/{name_b}.clean.csv')
+        independent = pd.read_csv(f'{pred_dir}/{name_a}-{name_b}_combination_predicted_ind.csv')
+        additive = pd.read_csv(f'{pred_dir}/{name_a}-{name_b}_combination_predicted_add.csv')
 
         plot_survivals(obs_ctrl, obs_exp, obs_ab, additive,
                     independent, flat_axes[i], label=name_ab)
@@ -165,12 +160,22 @@ def plot_between_hsa_suppl():
 
 
 def main():
-    fig_add = plot_additivity_suppl()
-    fig_btn = plot_between_hsa_suppl()
+    parser = argparse.ArgumentParser()
+    parser.add_argument('dataset', type=str,
+                        help='Dataset to use (approved, all_phase3')
+    args = parser.parse_args()
+    config_dict = CONFIG[args.dataset]
 
-    fig_add.savefig(f'{FIG_DIR}/all_phase3_suppl_additive_survival_plots.pdf',
+    cox_df = pd.read_csv(config_dict['cox_result'], index_col=None)
+    data_dir = config_dict['data_dir']
+    pred_dir = config_dict['pred_dir']
+    fig_dir = config_dict['fig_dir']
+    fig_add = plot_additivity_suppl(cox_df, data_dir, pred_dir)
+    fig_btn = plot_between_hsa_suppl(cox_df, data_dir, pred_dir)
+
+    fig_add.savefig(f'{fig_dir}/suppl_additive_survival_plots.pdf',
                     bbox_inches='tight', pad_inches=0.1)
-    fig_btn.savefig(f'{FIG_DIR}/all_phase3_suppl_between_hsa_survival_plots.pdf',
+    fig_btn.savefig(f'{fig_dir}/suppl_between_hsa_survival_plots.pdf',
                     bbox_inches='tight', pad_inches=0.1)
 
 

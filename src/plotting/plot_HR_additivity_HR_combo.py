@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import pandas as pd
 import numpy as np
-from plot_utils import import_input_data
+from plot_utils import import_input_data, get_model_colors
 from scipy.stats import spearmanr
 import matplotlib.ticker as plticker
 import yaml
@@ -10,14 +10,14 @@ import yaml
 with open('config.yaml', 'r') as f:
     CONFIG = yaml.safe_load(f)
 
-COMBO_SEED_SHEET = CONFIG['metadata_sheet']['combo_seed']
-COMBO_DATA_DIR = CONFIG['dir']['combo_data']
-PFS_PRED_DIR = CONFIG['dir']['PFS_prediction']
-FIG_DIR = CONFIG['dir']['figures']
-
 def plot_HR_additivity_HR_combo(cox_df: pd.DataFrame, ax: plt.axes) -> plt.axes:
-    cox_df.loc[:, 'Consistent with Additivity'] = cox_df['Model'].isin(['additive', 'between'])
+    additive = cox_df['Model'].isin(['additive', 'between'])
+    synergy = cox_df['Model'] == 'synergy'
+    cox_df.loc[:, 'Group'] = 'worse than additive'
+    cox_df.loc[additive, 'Group'] = 'additive'
+    cox_df.loc[synergy, 'Group'] = 'better than additive'
 
+    cox_df.loc[:, 'Additive'] = cox_df['Model'].isin(['additive', 'between'])
     #ci = np.array([cox_df['HR_add'].values - cox_df['HRlower_add'].values,
     #               cox_df['HRupper_add'].values - cox_df['HR_add'].values])
     #ax.errorbar(x=cox_df['HR(combo/control)'],
@@ -25,8 +25,12 @@ def plot_HR_additivity_HR_combo(cox_df: pd.DataFrame, ax: plt.axes) -> plt.axes:
     #            yerr=ci,
     #            color='black',  capsize=3, linestyle='None',
     #            linewidth=1, marker="o", markersize=0, mfc="black", mec="black")
+    color_dict = get_model_colors()
     sns.scatterplot(x='HR(combo/control)', y='HR_add',
-                    hue='Consistent with Additivity', data=cox_df, zorder=0, ax=ax)
+                    hue='Group', hue_order=['better than additive', 'additive', 'worse than additive'],
+                    palette=['violet', color_dict['additive'], color_dict['HSA']],
+                    data=cox_df, zorder=0, ax=ax)
+    ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))
     ax.set_xlabel('HR(combo vs. control)')
     ax.set_ylabel('HR(addtivity vs. combo)')
     ax.set_xlim(0.2, 1.1)
@@ -48,10 +52,11 @@ def plot_HR_additivity_HR_combo(cox_df: pd.DataFrame, ax: plt.axes) -> plt.axes:
 
 def main():
     cox_df = import_input_data()
-    fig, ax = plt.subplots(figsize=(3, 3))
+    fig, ax = plt.subplots(figsize=(2.5, 2.5))
     plot_HR_additivity_HR_combo(cox_df, ax=ax)
+    fig_dir = CONFIG['approved']['fig_dir']
     print(spearmanr(np.log(cox_df['HR(combo/control)']), np.log(cox_df['HR_add'])))
-    fig.savefig(f'{FIG_DIR}/HR_additivity-HR_combo_scatterplot.pdf',
+    fig.savefig(f'{fig_dir}/HR_additivity-HR_combo_scatterplot.pdf',
                 bbox_inches='tight', pad_inches=0.1)
 
 

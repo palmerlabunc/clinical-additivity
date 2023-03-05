@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+import argparse
 from scipy.stats import pearsonr
 from plotting.plot_utils import import_input_data
 from coxhazard_test import create_ipd, get_cox_results
@@ -9,20 +10,19 @@ import yaml
 with open('config.yaml', 'r') as f:
     CONFIG = yaml.safe_load(f)
 
-COMBO_DATA_DIR = CONFIG['dir']['combo_data']
-PFS_PRED_DIR = CONFIG['dir']['PFS_prediction']
-FIG_DIR = CONFIG['dir']['figures']
-TABLE_DIR = CONFIG['dir']['tables']
 
-
-def predict_success():
+def predict_success(input_df: pd.DataFrame, data_dir: str, pred_dir: str) -> pd.DataFrame:
     """Predict whether the trial would have been successful based
     on additivity and HSA predictions by Cox-PH test.
+
+    Args:
+        input_df (pd.DataFrame): _description_
+        data_dir (str): directory path to observed survival data
+        pred_dir (str): directory path to predicted survival data
 
     Returns:
         pd.DataFrame: predicted results
     """    
-    input_df = import_input_data()
     # output dataframe
     results = pd.DataFrame(index=input_df.index,
                           columns=['p_ind', 'HR_ind', 'HRlower_ind', 'HRupper_ind',
@@ -34,21 +34,21 @@ def predict_success():
         n_control = input_df.at[i, 'N_control'].astype(int)
         n_combo = input_df.at[i, 'N_combination'].astype(int)
         # observed data
-        df_a = pd.read_csv(f'{COMBO_DATA_DIR}/{name_a}.clean.csv')
-        df_b = pd.read_csv(f'{COMBO_DATA_DIR}/{name_b}.clean.csv')
-        df_ab = pd.read_csv(f'{COMBO_DATA_DIR}/{name_ab}.clean.csv')
+        df_a = pd.read_csv(f'{data_dir}/{name_a}.clean.csv')
+        df_b = pd.read_csv(f'{data_dir}/{name_b}.clean.csv')
+        df_ab = pd.read_csv(f'{data_dir}/{name_ab}.clean.csv')
 
         try:
-            ipd_control = pd.read_csv(f'{COMBO_DATA_DIR}/{name_b}_indiv.csv')
+            ipd_control = pd.read_csv(f'{data_dir}/{name_b}_indiv.csv')
 
         except FileNotFoundError:
             ipd_control = create_ipd(df_b, n=n_control)
 
         # import prediction
         independent = pd.read_csv(
-            f'{PFS_PRED_DIR}/{name_a}-{name_b}_combination_predicted_ind.csv')
+            f'{pred_dir}/{name_a}-{name_b}_combination_predicted_ind.csv')
         additive = pd.read_csv(
-            f'{PFS_PRED_DIR}/{name_a}-{name_b}_combination_predicted_add.csv')
+            f'{pred_dir}/{name_a}-{name_b}_combination_predicted_add.csv')
 
         tmax = np.amin([df_ab['Time'].max(), independent['Time'].max(), 
                         df_a['Time'].max(), df_b['Time'].max()])
@@ -98,15 +98,33 @@ def calc_correlation(model, results):
 
 
 def main():
-    results = predict_success()
-    results.to_csv(f'{TABLE_DIR}/HR_predicted_vs_control.csv', index=False)
+    parser = argparse.ArgumentParser()
+    parser.add_argument('dataset', type=str, 
+                        help='Dataset to use (approved, all_phase3, placebo')
+    args = parser.parse_args()
+    
+    config_dict = CONFIG[args.dataset]
+    if args.dataset == 'approved':
+        cox_df = import_input_data()
+    else:
+        cox_df = pd.read_csv(config_dict['cox_result'])
+    data_dir = config_dict['data_dir']
+    pred_dir = config_dict['pred_dir']
+    table_dir = config_dict['table_dir']
+    fig_dir = config_dict['fig_dir']
+    results = predict_success(cox_df, data_dir, pred_dir)
+    results.to_csv(f'{table_dir}/HR_predicted_vs_control.csv', index=False)
+    
     r_hsa, p_hsa = calc_correlation('HSA', results)
     r_add, p_add = calc_correlation('additivity', results)
+    
     print("r_hsa={0:.02f}, p_hsa={1:.03f}, r_add={2:.02f}, p_add={3:.03f}".format(
         r_hsa, p_hsa, r_add, p_add))
+    
     fig = plot_predict_success(results)
-    fig.savefig(f'{FIG_DIR}/HR_combo_control_scatterplot.pdf',
+    fig.savefig(f'{fig_dir}/HR_combo_control_scatterplot.pdf',
                 bbox_inches='tight', pad_inches=0.1)
+
 
 
 if __name__ == '__main__':
