@@ -10,6 +10,8 @@ import yaml
 with open('config.yaml', 'r') as f:
     CONFIG = yaml.safe_load(f)
 
+plt.style.use('env/publication.mplstyle')
+
 def plot_HR_additivity_HR_combo(cox_df: pd.DataFrame, ax: plt.axes) -> plt.axes:
     additive = cox_df['Model'].isin(['additive', 'between'])
     synergy = cox_df['Model'] == 'synergy'

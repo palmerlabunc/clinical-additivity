@@ -4,6 +4,7 @@ import seaborn as sns
 import warnings
 warnings.filterwarnings("ignore")
 
+plt.style.use('env/publication.mplstyle')
 
 def plot_concept_figure():
     fig, axes = plt.subplots(1, 2, figsize=(5.5, 3), 

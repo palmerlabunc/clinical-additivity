@@ -2,14 +2,12 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
-import matplotlib.ticker as plticker
 import warnings
+
 warnings.filterwarnings("ignore")
+plt.style.use('env/publication.mplstyle')
 
-
-def plot_uncertainty_stripplot():
-    df = pd.read_csv(
-        '../../figures/correlation_uncertainty_range95_avg.txt', sep='\t', header=0)
+def plot_uncertainty_stripplot(df):
     # we want +/- XX % so, divide by 2
     df.loc[:, 'avg_high2low_add'] = df['avg_high2low_add']/2
     df.loc[:, 'avg_high2low_HSA'] = df['avg_high2low_HSA']/2
@@ -33,9 +31,5 @@ def plot_uncertainty_stripplot():
                 showbox=False,
                 showcaps=False,
                 ax=ax)
-    fig.savefig('../../figures/correlation_uncertainty_range95_avg.pdf',
-                bbox_inches='tight', pad_inches=0.1)
+    return fig
 
-
-if __name__ == '__main__':
-    plot_uncertainty_stripplot()

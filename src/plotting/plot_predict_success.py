@@ -2,6 +2,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from .plot_utils import set_figsize
 
+plt.style.use('env/publication.mplstyle')
 
 def plot_predict_success(results):
     """Plot scatterplot of HR(obs combo vs. control) vs. HR(exp combo vs. control).

@@ -5,6 +5,8 @@ import matplotlib.ticker as plticker
 import seaborn as sns
 from .plot_utils import get_model_colors, import_input_data
 
+plt.style.use('env/publication.mplstyle')
+
 def get_observed_survival(cox_df, i):
     """Retreive observed survival curves for the combination, experimental,
     and control arms.

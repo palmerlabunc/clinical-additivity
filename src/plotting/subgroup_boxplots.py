@@ -11,9 +11,10 @@ import yaml
 with open('config.yaml', 'r') as f:
     CONFIG = yaml.safe_load(f)
 
-FIG_DIR = CONFIG['dir']['figures']
+FIG_DIR = CONFIG['approved']['fig_dir']
 
 warnings.filterwarnings("ignore")
+plt.style.use('env/publication.mplstyle')
 
 def plot_box(df, group, order, model='add'):
     """Helper function for boxplot.

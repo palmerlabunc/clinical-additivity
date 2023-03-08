@@ -4,13 +4,15 @@ import seaborn as sns
 import warnings
 import yaml
 
+plt.style.use('env/publication.mplstyle')
+
 with open('config.yaml', 'r') as f:
     CONFIG = yaml.safe_load(f)
 
-PLACEBO_INPUT_SHEET = CONFIG['metadata_sheet']['placebo']
-PLACEBO_DATA_DIR = CONFIG['dir']['placebo_data']
-FIG_DIR = CONFIG['dir']['figures']
-
+config_dict = CONFIG['placebo']
+PLACEBO_INPUT_SHEET = config_dict['metadata_sheet']
+PLACEBO_DATA_DIR = config_dict['data_dir']
+FIG_DIR = config_dict['fig_dir']
 warnings.filterwarnings("ignore")
 
 

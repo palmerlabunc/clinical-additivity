@@ -2,6 +2,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from .plot_utils import get_model_colors
 
+plt.style.use('env/publication.mplstyle')
 
 def plot_lognormal_examples(less_variable, more_variable):
     """Plot demonstrative figure of how the HSA and additivity predictions differ

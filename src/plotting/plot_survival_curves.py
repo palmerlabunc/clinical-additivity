@@ -7,14 +7,16 @@ from plot_utils import import_input_data, get_model_colors
 import warnings
 import yaml
 
+plt.style.use('env/publication.mplstyle')
+
 with open('config.yaml', 'r') as f:
     CONFIG = yaml.safe_load(f)
 
-COMBO_SEED_SHEET = CONFIG['metadata_sheet']['combo_seed']
-COMBO_DATA_DIR = CONFIG['dir']['combo_data']
-PFS_PRED_DIR = CONFIG['dir']['PFS_prediction']
-FIG_DIR = CONFIG['dir']['figures']
-
+config_dict = CONFIG['approved']
+COMBO_SEED_SHEET = config_dict['metadata_sheet_seed']
+COMBO_DATA_DIR = config_dict['data_dir']
+PFS_PRED_DIR = config_dict['pred_dir']
+FIG_DIR = config_dict['pred_dir']
 warnings.filterwarnings("ignore")
 
 

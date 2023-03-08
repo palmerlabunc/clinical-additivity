@@ -5,6 +5,8 @@ import seaborn as sns
 from sklearn.metrics import roc_curve, roc_auc_score, precision_recall_curve
 from .plot_utils import get_model_colors
 
+plt.style.use('env/publication.mplstyle')
+
 def calc_tpr_fpr(df: pd.DataFrame, model: str, threshold: float) -> tuple:
     actual_p = df['PFS_improvement'].sum()
     actual_n = df.shape[0] - actual_p

@@ -3,6 +3,11 @@ import pandas as pd
 from experimental_correlation import get_all_pairs_95_range
 from hsa_additivity_model import predict_both
 from utils import interpolate
+from plotting.plot_correlation_uncertainty import plot_uncertainty_stripplot
+import yaml
+
+with open('config.yaml', 'r') as f:
+    CONFIG = yaml.safe_load(f)
 
 
 def diff_12month(high_df, low_df):
@@ -92,9 +97,9 @@ def calcualte_uncertainty():
                                                   df_ab=df_ab, rho=0.3,
                                                   seed_ind=seed_ind, seed_add=seed_add)
         low_corr_hsa, low_corr_add = predict_both(df_a, df_b, name_a, name_b, 
-                                                    subtracted, scan_time,
-                                                    df_ab=df_ab, rho=low_corr, 
-                                                    seed_ind=seed_ind, seed_add=seed_add)
+                                                  subtracted, scan_time,
+                                                  df_ab=df_ab, rho=low_corr, 
+                                                  seed_ind=seed_ind, seed_add=seed_add)
         high_corr_hsa, high_corr_add = predict_both(df_a, df_b, name_a, name_b,
                                                     subtracted, scan_time,
                                                     df_ab=df_ab, rho=high_corr,
@@ -110,10 +115,13 @@ def calcualte_uncertainty():
 
     # drop combinations that are not using all pairs
     results = results[results['Corr'] == 0.3]
-    results.to_csv(
-        "../figures/correlation_uncertainty_range95_avg.txt", sep='\t', index=False)
+    results.to_csv(f"{CONFIG['table_dir']}/correlation_uncertainty_range95_avg.txt",
+                   sep='\t', index=False)
     return results
 
 
 if __name__ == '__main__':
-    calcualte_uncertainty()
+    results = calcualte_uncertainty()
+    fig = plot_uncertainty_stripplot()
+    fig.savefig(f"{CONFIG['fig_dir']}/correlation_uncertainty_range95_avg.pdf",
+                bbox_inches='tight', pad_inches=0.1)

@@ -8,7 +8,7 @@ import yaml
 with open('config.yaml', 'r') as f:
     CONFIG = yaml.safe_load(f)
 
-COMBO_DATA_DIR = CONFIG['dir']['combo_data']
+COMBO_DATA_DIR = CONFIG['approved']['data_dir']
 
 
 def lognormal_survival(x, mu, sigma):

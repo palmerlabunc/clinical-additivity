@@ -12,7 +12,7 @@ with open('config.yaml', 'r') as f:
     CONFIG = yaml.safe_load(f)
 
 warnings.filterwarnings("ignore")
-
+plt.style.use('env/publication.mplstyle')
 
 def set_tmax(df_a, df_b):
     """Set maximum follow-up time.

@@ -13,7 +13,7 @@ with open('config.yaml', 'r') as f:
     CONFIG = yaml.safe_load(f)
 
 warnings.filterwarnings("ignore")
-
+plt.style.use('env/publication.mplstyle')
 
 def prepare_data_for_r2_histogram(cox_df: pd.DataFrame, data_dir: str, pred_dir: str) -> pd.DataFrame:
     """Preprocess dataframe to plot R2 hsitogram.

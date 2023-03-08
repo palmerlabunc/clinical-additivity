@@ -3,8 +3,8 @@ import seaborn as sns
 import pandas as pd
 import numpy as np
 from scipy.stats import spearmanr
-import sys
 
+plt.style.use('env/publication.mplstyle')
 
 def get_ctrp_corr_data(df: pd.DataFrame, cancer_type: pd.Series, 
                        drug_a: str, drug_b: str, metric='CTRP_AUC'):

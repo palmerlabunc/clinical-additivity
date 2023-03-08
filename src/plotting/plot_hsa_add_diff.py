@@ -5,7 +5,12 @@ import matplotlib.ticker as plticker
 import seaborn as sns
 from scipy.stats import linregress, pearsonr
 from .plot_utils import get_model_colors
+import yaml
 
+with open('config.yaml', 'r') as f:
+    CONFIG = yaml.safe_load(f)
+
+plt.style.use('env/publication.mplstyle')
 
 def plot_hsa_add_diff_vs_lognormal(lognorm_df, diff_df):
     """Plot average sigma of the lognormal fits of the monotherapy curves vs.
@@ -71,6 +76,7 @@ def corr_hsa_add_diff_vs_lognormal(lognorm_df, diff_df):
 
 
 def hsa_add_contribution_stacked_barplot():
+    #FIXME This will probably break; need to change file paths
     diff_df = pd.read_csv('../analysis/additivity_HSA_similarity/difference.csv').round(5)
     less_than_HSA = diff_df['Combo - Control'] < diff_df['HSA - Control'] 
     less_than_Add = diff_df['Combo - Control'] < diff_df['Additivity - HSA'] + diff_df['HSA - Control']
@@ -99,6 +105,7 @@ def hsa_add_contribution_stacked_barplot():
 
 
 def hsa_add_contribution_stacked_barplot_test():
+    #FIXME This will probably break; need to change file paths
     diff_df = pd.read_csv('../analysis/additivity_HSA_similarity/difference.csv').round(5)
     fig, ax = plt.subplots(figsize=(3, 2), constrained_layout=True)
     sns.despine()

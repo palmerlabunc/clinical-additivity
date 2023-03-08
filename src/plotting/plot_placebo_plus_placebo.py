@@ -3,12 +3,14 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import yaml
 
+plt.style.use('env/publication.mplstyle')
 with open('config.yaml', 'r') as f:
     CONFIG = yaml.safe_load(f)
 
-PLACEBO_INPUT_SHEET = CONFIG['metadata_sheet']['placebo']
-PLACEBO_DATA_DIR = CONFIG['dir']['placebo_data']
-FIG_DIR = CONFIG['dir']['figures']
+config_dict = CONFIG['placebo']
+PLACEBO_INPUT_SHEET = config_dict['metadata_sheet']
+PLACEBO_DATA_DIR = config_dict['data_dir']
+FIG_DIR = config_dict['fig_dir']
 
 
 def plot_placebo_plus_placebo():
@@ -20,8 +22,6 @@ def plot_placebo_plus_placebo():
     rho_list = [0.3, 0.6, 1]
     for i in range(placebo_input.shape[0]):
         ax = axes[i]
-        sns.despine()
-
         file_prefix = placebo_input.at[i, 'File prefix']
         placebo = pd.read_csv(f'{PLACEBO_DATA_DIR}/{file_prefix}.clean.csv', header=0)
 
@@ -40,9 +40,9 @@ def plot_placebo_plus_placebo():
         ax.set_yticks([0, 50, 100])
         ax.set_xlabel('Time (months)')
         ax.set_ylabel('Survival (%)')
-    fig.savefig(f'{FIG_DIR}/placebo_plus_palcebo.pdf')
     return fig
 
 
 if __name__ == '__main__':
-    plot_placebo_plus_placebo()
+    fig = plot_placebo_plus_placebo()
+    fig.savefig(f'{FIG_DIR}/placebo_plus_palcebo.pdf')

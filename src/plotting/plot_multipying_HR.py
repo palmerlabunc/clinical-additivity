@@ -6,17 +6,20 @@ from pathlib import Path
 import sys
 sys.path.insert(0, '..')
 from hsa_additivity_model import predict_both
+import yaml
+
+with open('config.yaml', 'r') as f:
+    CONFIG = yaml.safe_load(f)
+
+plt.style.use('env/publication.mplstyle')
 
 
 def exponential_survival(ts, mu):
     return pd.DataFrame({'Time': ts, 'Survival': 100 * np.exp(-mu * ts)})
 
 
-def plot_multipying_HR_example(outdir):
+def plot_multipying_HR_example():
     """_summary_
-
-    Args:
-        outdir (str): output directory
 
     Returns:
         plt.figure: plotted figure
@@ -47,11 +50,11 @@ def plot_multipying_HR_example(outdir):
 
 
 def main():
-    outdir = '../../figures/'
+    outdir = CONFIG['fig_dir']
     new_directory = Path(outdir)
     new_directory.mkdir(parents=True, exist_ok=True)
-    fig = plot_multipying_HR_example(outdir)
-    fig.savefig(outdir + 'multipyling_HR_example.pdf',
+    fig = plot_multipying_HR_example()
+    fig.savefig(f'{outdir}/multipyling_HR_example.pdf',
                 bbox_inches='tight', pad_inches=0.1)
 
 

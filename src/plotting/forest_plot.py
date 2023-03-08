@@ -11,8 +11,9 @@ import yaml
 with open('config.yaml', 'r') as f:
     CONFIG = yaml.safe_load(f)
 
-FIG_DIR = CONFIG['dir']['figures']
+FIG_DIR = CONFIG['approved']['fig_dir']
 
+plt.style.use('env/publication.mplstyle')
 warnings.filterwarnings("ignore")
 
 def forest_plot() -> plt.figure:

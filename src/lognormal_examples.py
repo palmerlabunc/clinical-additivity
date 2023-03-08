@@ -10,7 +10,7 @@ import warnings
 with open('config.yaml', 'r') as f:
     CONFIG = yaml.safe_load(f)
 
-FIG_DIR = CONFIG['dir']['figures']
+FIG_DIR = CONFIG['approved']['fig_dir']
 
 warnings.filterwarnings("ignore")
 
@@ -45,7 +45,7 @@ def get_lognormal_examples(tmax, n, mu_a, mu_b, sigma, rho=0.3):
         rho (float, optional): Spearman rho for two drug responses. Defaults to 0.3.
 
     Returns:
-        dict: dictonary of dataframes for drug A, drug B, HSA, and Additivity.
+        dict: dictonary of dataframes for A, B, HSA, and Additivity.
     """    
     drugA = get_lognorm_survival_dataframe(tmax, n, mu_a, sigma)
     drugB = get_lognorm_survival_dataframe(tmax, n, mu_b, sigma)
