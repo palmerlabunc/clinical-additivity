@@ -131,12 +131,12 @@ def predict_both(df_a: pd.DataFrame, df_b: pd.DataFrame,
     return (independent, additivity)
 
 
-def subtract_which_scan_time(scan_a: int, scan_b: int) -> tuple:
+def subtract_which_scan_time(scan_a: float, scan_b: float) -> tuple:
     """Determines which monotherapy scan time to subtract.
 
     Args:
-        scan_a (int): Scan time of drug A (Experimental)
-        scan_b (int): Scan time of drug B (Control)
+        scan_a (float): Scan time of drug A (Experimental)
+        scan_b (float): Scan time of drug B (Control)
 
     Returns:
         tuple: ('a' or 'b', scan_time)

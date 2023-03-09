@@ -3,7 +3,7 @@ import seaborn as sns
 import pandas as pd
 import numpy as np
 from plot_utils import import_input_data, get_model_colors
-from scipy.stats import spearmanr
+from scipy.stats import spearmanr, pearsonr
 import matplotlib.ticker as plticker
 import yaml
 
@@ -57,7 +57,7 @@ def main():
     fig, ax = plt.subplots(figsize=(2.5, 2.5))
     plot_HR_additivity_HR_combo(cox_df, ax=ax)
     fig_dir = CONFIG['approved']['fig_dir']
-    print(spearmanr(np.log(cox_df['HR(combo/control)']), np.log(cox_df['HR_add'])))
+    print(spearmanr(cox_df['HR(combo/control)'].values, cox_df['HR_add'].values))
     fig.savefig(f'{fig_dir}/HR_additivity-HR_combo_scatterplot.pdf',
                 bbox_inches='tight', pad_inches=0.1)
 

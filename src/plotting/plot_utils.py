@@ -28,7 +28,7 @@ def import_input_data() -> pd.DataFrame:
     """Import input data excluding supplementary combinations.
 
     Returns:
-        (str, pd.DataFrame): a tuple of input directory path and input data
+        pd.DataFrame: a tuple of input directory path and input data
     """
     cox_df = pd.read_csv(COX_RESULT, index_col=False)
     # remove supplementary
@@ -40,7 +40,7 @@ def import_input_data_include_suppl() -> pd.DataFrame:
     """Import input data including supplementary combinations.
 
     Returns:
-        (str, pd.DataFrame): a tuple of input directory path and input data
+        pd.DataFrame: a tuple of input directory path and input data
     """
     cox_df = pd.read_csv(COX_RESULT, index_col=False)
     return cox_df
