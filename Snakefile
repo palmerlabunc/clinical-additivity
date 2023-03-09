@@ -66,34 +66,34 @@ ALL_PHASE3_PRED_FILES =  expand(f"{config['all_phase3']['pred_dir']}/{{pred}}_co
                                   pred=get_pred_list("all_phase3"), model=['ind', 'add'])
 ALL_PRED_FILES = list(set(ALL_APPROVED_PRED_FILES) | set(ALL_PHASE3_PRED_FILES))
 
-""""
+
 rule all:
     input:
-        f'{FIG_DIR}/forest_plot.pdf',
-        f"{FIG_DIR}/additive_survival_plots.pdf",
-        f"{FIG_DIR}/between_survival_plots.pdf",
-        f"{FIG_DIR}/hsa_survival_plots.pdf",
-        f"{FIG_DIR}/all_combo_qqplot.pdf",
-        f"{FIG_DIR}/r2_histogram.pdf",
-        f"{FIG_DIR}/msd_histogram.pdf",
-        f"{FIG_DIR}/ici_boxplot.pdf",
-        f"{FIG_DIR}/angiogenesis_boxplot.pdf",
-        f"{FIG_DIR}/monotherapy_approval_boxplot.pdf",
-        f"{FIG_DIR}/HRmedian_boxplot.pdf",
-        f"{FIG_DIR}/placebo_survival_plots.pdf",
-        f"{FIG_DIR}/relative_doses.pdf",
-        f"{FIG_DIR}/suppl_additive_survival_plots.pdf",
-        f"{FIG_DIR}/suppl_between_hsa_survival_plots.pdf",
-        f'{FIG_DIR}/HR_combo_control_scatterplot.pdf',
-        f'{TABLE_DIR}/HR_predicted_vs_control.csv',
-        f'{FIG_DIR}/explain_HSA_additive_difference.pdf',
-        f'{TABLE_DIR}/added_benefit_hsa_add_syn.csv',
-        f'{FIG_DIR}/hsa_additivity_sigma.pdf',        
-        f'{FIG_DIR}/CRC_cetuximab_5FU_BestAvgResponse_corr.pdf',
-        f'{FIG_DIR}/Dabrafenib_Trametinib_AUC_corr.pdf',
-        f'{FIG_DIR}/CTRPv2_corr_distributions.pdf',
-        f'{TABLE_DIR}/experimental_correlation_report.csv'
-"""
+        f"{config['approved']['fig_dir']}/forest_plot.pdf",
+        f"{config['approved']['fig_dir']}/additive_survival_plots.pdf",
+        f"{config['approved']['fig_dir']}/between_survival_plots.pdf",
+        f"{config['approved']['fig_dir']}/hsa_survival_plots.pdf",
+        f"{config['approved']['fig_dir']}/all_combo_qqplot.pdf",
+        f"{config['approved']['fig_dir']}/r2_histogram.pdf",
+        f"{config['approved']['fig_dir']}/msd_histogram.pdf",
+        f"{config['approved']['fig_dir']}/ici_boxplot.pdf",
+        f"{config['approved']['fig_dir']}/angiogenesis_boxplot.pdf",
+        f"{config['approved']['fig_dir']}/monotherapy_approval_boxplot.pdf",
+        f"{config['approved']['fig_dir']}/HRmedian_boxplot.pdf",
+        f"{config['approved']['fig_dir']}/placebo_survival_plots.pdf",
+        f"{config['approved']['fig_dir']}/relative_doses.pdf",
+        f"{config['approved']['fig_dir']}/suppl_additive_survival_plots.pdf",
+        f"{config['approved']['fig_dir']}/suppl_between_hsa_survival_plots.pdf",
+        f"{config['approved']['fig_dir']}/HR_combo_control_scatterplot.pdf",
+        f"{config['approved']['table_dir']}/HR_predicted_vs_control.csv",
+        f"{config['approved']['fig_dir']}/explain_HSA_additive_difference.pdf",
+        f"{config['approved']['table_dir']}/added_benefit_hsa_add_syn.csv",
+        f"{config['approved']['fig_dir']}/hsa_additivity_sigma.pdf",        
+        f"{config['fig_dir']}/CRC_cetuximab_5FU_BestAvgResponse_corr.pdf",
+        f"{config['fig_dir']}/Dabrafenib_Trametinib_AUC_corr.pdf",
+        f"{config['fig_dir']}/CTRPv2_corr_distributions.pdf",
+        f"{config['table_dir']}/experimental_correlation_report.csv",
+        f"{config['all_phase3']['fig_dir']}/roc_curve.pdf"
 
 
 rule preprocess:
@@ -151,7 +151,7 @@ rule forest_plot:
     input:
         config['approved']['cox_result']
     output:
-        f'{FIG_DIR}/forest_plot.pdf'
+        f"{config['approved']['fig_dir']}/forest_plot.pdf"
     shell:
         "python src/plotting/forest_plot.py {output}"
 
@@ -161,9 +161,9 @@ rule main_survival_plots:
         ALL_APPROVED_PRED_FILES,
         ALL_APPROVED_TRIALS
     output:
-        f"{FIG_DIR}/additive_survival_plots.pdf",
-        f"{FIG_DIR}/between_survival_plots.pdf",
-        f"{FIG_DIR}/hsa_survival_plots.pdf"
+        f"{config['approved']['fig_dir']}/additive_survival_plots.pdf",
+        f"{config['approved']['fig_dir']}/between_survival_plots.pdf",
+        f"{config['approved']['fig_dir']}/hsa_survival_plots.pdf"
     script:
         "src/plotting/plot_survival_curves.py"
 
@@ -173,8 +173,8 @@ rule qqplots:
         ALL_APPROVED_PRED_FILES,
         ALL_APPROVED_TRIALS
     output:
-        f"{FIG_DIR}/all_combo_qqplot.pdf",
-        f"{FIG_DIR}/qqplot_legend.pdf"
+        f"{config['approved']['fig_dir']}/all_combo_qqplot.pdf",
+        f"{config['approved']['fig_dir']}/qqplot_legend.pdf"
     conda:
         "env/environment_short.yml"
     script:
@@ -186,8 +186,8 @@ rule performance_histogram:
         ALL_APPROVED_PRED_FILES,
         ALL_APPROVED_TRIALS
     output:
-        f"{FIG_DIR}/r2_histogram.pdf",
-        f"{FIG_DIR}/msd_histogram.pdf",
+        f"{config['approved']['fig_dir']}/r2_histogram.pdf",
+        f"{config['approved']['fig_dir']}/msd_histogram.pdf",
     conda:
         "env/environment_short.yml"
     script:
@@ -197,10 +197,10 @@ rule subgroup_boxplots:
     input:
         config['approved']['cox_result']
     output:    
-        f"{FIG_DIR}/ici_boxplot.pdf",
-        f"{FIG_DIR}/angiogenesis_boxplot.pdf",
-        f"{FIG_DIR}/monotherapy_approval_boxplot.pdf",
-        f"{FIG_DIR}/HRmedian_boxplot.pdf"
+        f"{config['approved']['fig_dir']}/ici_boxplot.pdf",
+        f"{config['approved']['fig_dir']}/angiogenesis_boxplot.pdf",
+        f"{config['approved']['fig_dir']}/monotherapy_approval_boxplot.pdf",
+        f"{config['approved']['fig_dir']}/HRmedian_boxplot.pdf"
     conda:
         "env/environment_short.yml"
     script:
@@ -210,7 +210,7 @@ rule placebo_survival_plots:
     input:
         ALL_PLACEBO_TRIALS
     output:
-        f"{FIG_DIR}/placebo_survival_plots.pdf"
+        f"{config['approved']['fig_dir']}/placebo_survival_plots.pdf"
     script:
         "src/plotting/plot_placebo.py"
 
@@ -218,7 +218,7 @@ rule relative_dose_plot:
     input:
         config['relative_doses']
     output:
-        f"{FIG_DIR}/relative_doses.pdf"
+        f"{config['approved']['fig_dir']}/relative_doses.pdf"
     script:
         "src/plotting/plot_doses_difference.py"
 
@@ -228,10 +228,10 @@ rule suppl_survival_plots:
         ALL_APPROVED_PRED_FILES,
         config['approved']['cox_result']
     output:
-        f"{FIG_DIR}/all_phase3_suppl_additive_survival_plots.pdf",
-        f"{FIG_DIR}/all_phase3_suppl_between_hsa_survival_plots.pdf"
+        f"{config['approved']['fig_dir']}/suppl_additive_survival_plots.pdf",
+        f"{config['approved']['fig_dir']}/suppl_between_hsa_survival_plots.pdf"
     script:
-        "src/plotting/plot_survival_curves_suppl.py"
+        "src/plotting/plot_survival_curves_suppl.py approved"
 
 rule predict_success:
     input:
@@ -250,9 +250,9 @@ rule HSA_additive_diff:
         ALL_APPROVED_PRED_FILES,
         config['approved']['cox_result']
     output:
-        f'{FIG_DIR}/explain_HSA_additive_difference.pdf',
-        f'{TABLE_DIR}/added_benefit_hsa_add_syn.csv',
-        f'{FIG_DIR}/hsa_additivity_sigma.pdf'
+        f"{config['approved']['fig_dir']}/explain_HSA_additive_difference.pdf",
+        f"{config['approved']['table_dir']}/added_benefit_hsa_add_syn.csv",
+        f"{config['approved']['fig_dir']}/hsa_additivity_sigma.pdf"
     shell:
         "python src/lognormal_examples.py "
         "python src/hsa_add_diff.py"
