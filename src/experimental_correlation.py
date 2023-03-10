@@ -7,9 +7,9 @@ import yaml
 with open('config.yaml', 'r') as f:
     CONFIG = yaml.safe_load(f)
 
-EXPERIMENTAL_DATA_DIR = CONFIG['dir']['experimental_data']
-FIG_DIR = CONFIG['dir']['figures']
-TABLE_DIR = CONFIG['dir']['tables']
+EXPERIMENTAL_DATA_DIR = CONFIG['experimental_dir']
+FIG_DIR = CONFIG['fig_dir']
+TABLE_DIR = CONFIG['table_dir']
 
 
 def import_ctrp_data():

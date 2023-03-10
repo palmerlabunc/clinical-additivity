@@ -16,7 +16,7 @@ config_dict = CONFIG['approved']
 COMBO_SEED_SHEET = config_dict['metadata_sheet_seed']
 COMBO_DATA_DIR = config_dict['data_dir']
 PFS_PRED_DIR = config_dict['pred_dir']
-FIG_DIR = config_dict['pred_dir']
+FIG_DIR = config_dict['fig_dir']
 warnings.filterwarnings("ignore")
 
 

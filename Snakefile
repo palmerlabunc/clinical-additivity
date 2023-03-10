@@ -80,7 +80,7 @@ rule all:
         f"{config['approved']['fig_dir']}/angiogenesis_boxplot.pdf",
         f"{config['approved']['fig_dir']}/monotherapy_approval_boxplot.pdf",
         f"{config['approved']['fig_dir']}/HRmedian_boxplot.pdf",
-        f"{config['approved']['fig_dir']}/placebo_survival_plots.pdf",
+        f"{config['placebo']['fig_dir']}/placebo_survival_plots.pdf",
         f"{config['approved']['fig_dir']}/relative_doses.pdf",
         f"{config['approved']['fig_dir']}/suppl_additive_survival_plots.pdf",
         f"{config['approved']['fig_dir']}/suppl_between_hsa_survival_plots.pdf",
@@ -92,8 +92,8 @@ rule all:
         f"{config['fig_dir']}/CRC_cetuximab_5FU_BestAvgResponse_corr.pdf",
         f"{config['fig_dir']}/Dabrafenib_Trametinib_AUC_corr.pdf",
         f"{config['fig_dir']}/CTRPv2_corr_distributions.pdf",
-        f"{config['table_dir']}/experimental_correlation_report.csv",
-        f"{config['all_phase3']['fig_dir']}/roc_curve.pdf"
+        f"{config['table_dir']}/experimental_correlation_report.csv"
+        #f"{config['all_phase3']['fig_dir']}/roc_curve.pdf"
 
 
 rule preprocess:
@@ -210,7 +210,7 @@ rule placebo_survival_plots:
     input:
         ALL_PLACEBO_TRIALS
     output:
-        f"{config['approved']['fig_dir']}/placebo_survival_plots.pdf"
+        f"{config['placebo']['fig_dir']}/placebo_survival_plots.pdf"
     script:
         "src/plotting/plot_placebo.py"
 
@@ -230,8 +230,8 @@ rule suppl_survival_plots:
     output:
         f"{config['approved']['fig_dir']}/suppl_additive_survival_plots.pdf",
         f"{config['approved']['fig_dir']}/suppl_between_hsa_survival_plots.pdf"
-    script:
-        "src/plotting/plot_survival_curves_suppl.py approved"
+    shell:
+        "python src/plotting/plot_survival_curves_suppl.py approved"
 
 rule predict_success:
     input:
@@ -254,7 +254,7 @@ rule HSA_additive_diff:
         f"{config['approved']['table_dir']}/added_benefit_hsa_add_syn.csv",
         f"{config['approved']['fig_dir']}/hsa_additivity_sigma.pdf"
     shell:
-        "python src/lognormal_examples.py "
+        "python src/lognormal_examples.py; "
         "python src/hsa_add_diff.py"
 
 rule experimental_correlation:

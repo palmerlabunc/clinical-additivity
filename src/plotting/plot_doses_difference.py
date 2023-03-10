@@ -10,7 +10,7 @@ with open('config.yaml', 'r') as f:
     CONFIG = yaml.safe_load(f)
 
 DOSE_DIFF_SHEET = CONFIG['relative_doses']
-FIG_DIR = CONFIG['fig_dir']
+FIG_DIR = CONFIG['approved']['fig_dir']
 
 plt.style.use('env/publication.mplstyle')
 warnings.filterwarnings("ignore")
