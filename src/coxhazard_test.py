@@ -34,7 +34,8 @@ def create_ipd(df: pd.DataFrame, n=500) -> pd.DataFrame:
                         np.repeat(1, round((1 - min_surv) * n))))
     if len(events) > n:
         events = events[len(events) - n:]
-
+    if len(events) < n:
+        events = np.insert(events, 0, np.repeat(0, n - len(events)))
     t = interp(np.linspace(0, 100, n))
     return pd.DataFrame({'Time': t, 'Event': events})
 
