@@ -42,7 +42,7 @@ data
 
 All data files should be placed in their approprite directories as described in `config.yaml` file.
 
-You can reconstruct all tables and figures in the article by running the following code.
+You can reconstruct all tables and figures in the article by running the following code. We recommend using at least 4 cores because the code utilizes parallel computing. If you have limitied computation power, reducing the `NRUN` in the `src/all_phase3_predictive_power.py` to 100 or 1000 will significantly reduce the run time. 
 
 ```bash
 # specify number of cores {N} you want to use
