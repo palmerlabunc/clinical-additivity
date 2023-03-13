@@ -98,6 +98,8 @@ rule all:
 
 rule preprocess:
     input:
+        f"{config['approved']['metadata_sheet']}",
+        f"{config['all_phase3']['metadata_sheet']}",
         expand("{input_file}", input_file=get_raw_files("approved")),
         expand("{input_file}", input_file=get_raw_files("all_phase3")),
         expand("{input_file}", input_file=get_raw_files("placebo"))
@@ -116,6 +118,8 @@ rule preprocess:
 
 rule find_seeds:
     input:
+        f"{config['approved']['metadata_sheet']}",
+        f"{config['all_phase3']['metadata_sheet']}",
         ALL_APPROVED_TRIALS,
         ALL_PHASE3_TRIALS
     output:
@@ -237,12 +241,13 @@ rule predict_success:
     input:
         ALL_APPROVED_TRIALS,
         ALL_APPROVED_PRED_FILES,
-        f"{config['approved']['cox_result']}"
+        f"{config['approved']['cox_result']}",
+        f"{config['all_phase3']['cox_result']}"
     output:
         f"{config['approved']['fig_dir']}/HR_combo_control_scatterplot.pdf",
         f"{config['approved']['table_dir']}/HR_predicted_vs_control.csv"
     shell:
-        "python src/predict_success.py approved"
+        "python src/predict_success.py both"
 
 rule HSA_additive_diff:
     input:

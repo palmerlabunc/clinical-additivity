@@ -4,7 +4,7 @@ import argparse
 from scipy.stats import pearsonr
 from plotting.plot_utils import import_input_data
 from coxhazard_test import create_ipd, get_cox_results
-from plotting.plot_predict_success import plot_predict_success
+from plotting.plot_predict_success import plot_predict_success, plot_scatterplot_for_review
 import yaml
 
 with open('config.yaml', 'r') as f:
@@ -75,7 +75,7 @@ def predict_success(input_df: pd.DataFrame, data_dir: str, pred_dir: str) -> pd.
     results.loc[:, 'success_ind'] = results['p_ind'] < 0.05
     results.loc[:, 'success_add'] = results['p_add'] < 0.05
 
-    return pd.concat([input_df.iloc[:, :21], results], axis=1)
+    return pd.concat([input_df[['Experimental', 'Control', 'Combination', 'HR(combo/control)']], results], axis=1)
 
 
 def calc_correlation(model, results):
@@ -87,11 +87,13 @@ def calc_correlation(model, results):
 
     Returns:
         (float, float): pearson rvalue, pvalue
-    """    
+    """
     if model == 'HSA':
-        return pearsonr(results['HR(combo/control)'], results['HR_ind'])
+        return pearsonr(np.log(results['HR(combo/control)'].astype('float')), 
+                        np.log(results['HR_ind'].astype('float')))
     elif model == 'additivity':
-        return pearsonr(results['HR(combo/control)'], results['HR_add'])
+        return pearsonr(np.log(results['HR(combo/control)'].astype('float')), 
+                        np.log(results['HR_add'].astype('float')))
     else:
         print("Wrong model argument")
         return
@@ -100,28 +102,51 @@ def calc_correlation(model, results):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('dataset', type=str, 
-                        help='Dataset to use (approved, all_phase3, placebo')
+                        help='Dataset to use (approved, all_phase3, placebo, both')
     args = parser.parse_args()
     
-    config_dict = CONFIG[args.dataset]
-    if args.dataset == 'approved':
+    if args.dataset == 'both':
+        table_dir = CONFIG['table_dir']
+        fig_dir = CONFIG['fig_dir']
+        for dataset in ['approved', 'all_phase3']:
+            config_dict = CONFIG[dataset]
+            data_dir = config_dict['data_dir']
+            pred_dir = config_dict['pred_dir']
+            if dataset == 'approved':
+                cox_df = import_input_data()
+                tmp1 = predict_success(cox_df, data_dir, pred_dir)
+                tmp1.loc[:, "PFS_improvement"] = 1
+            else:
+                cox_df = pd.read_csv(config_dict['cox_result'])
+                tmp2 = predict_success(cox_df, data_dir, pred_dir)
+                tmp2.loc[:, "PFS_improvement"] = cox_df['PFS_improvement']
+        results = pd.concat([tmp1, tmp2], axis=0).drop_duplicates(subset='Combination')
+    
+    elif args.dataset == 'approved':
+        config_dict = CONFIG[args.dataset]
         cox_df = import_input_data()
+        data_dir = config_dict['data_dir']
+        pred_dir = config_dict['pred_dir']
+        table_dir = config_dict['table_dir']
+        fig_dir = config_dict['fig_dir']
+        results = predict_success(cox_df, data_dir, pred_dir)
     else:
+        config_dict = CONFIG[args.dataset]
         cox_df = pd.read_csv(config_dict['cox_result'])
-    data_dir = config_dict['data_dir']
-    pred_dir = config_dict['pred_dir']
-    table_dir = config_dict['table_dir']
-    fig_dir = config_dict['fig_dir']
-    results = predict_success(cox_df, data_dir, pred_dir)
+        data_dir = config_dict['data_dir']
+        pred_dir = config_dict['pred_dir']
+        table_dir = config_dict['table_dir']
+        fig_dir = config_dict['fig_dir']
+        results = predict_success(cox_df, data_dir, pred_dir)
     results.to_csv(f'{table_dir}/HR_predicted_vs_control.csv', index=False)
     
     r_hsa, p_hsa = calc_correlation('HSA', results)
     r_add, p_add = calc_correlation('additivity', results)
     
-    print("r_hsa={0:.02f}, p_hsa={1:.03f}, r_add={2:.02f}, p_add={3:.03f}".format(
+    print("r_hsa={0:.02f}, p_hsa={1:.03f}, r_add={2:.05f}, p_add={3}".format(
         r_hsa, p_hsa, r_add, p_add))
     
-    fig = plot_predict_success(results)
+    fig = plot_scatterplot_for_review(results)
     fig.savefig(f'{fig_dir}/HR_combo_control_scatterplot.pdf',
                 bbox_inches='tight', pad_inches=0.1)
 

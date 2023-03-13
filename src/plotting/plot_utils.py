@@ -1,6 +1,8 @@
 import pandas as pd
 from scipy.interpolate import interp1d
 import yaml
+import matplotlib.ticker as plticker
+import matplotlib.pyplot as plt
 
 with open('config.yaml', 'r') as f:
     CONFIG = yaml.safe_load(f)
@@ -87,3 +89,17 @@ def get_model_colors() -> dict:
 
     color_dict = {'HSA': blue, 'additive': red, 'control': 'orange', 'experimental': 'green', 'combo': 'black'}
     return color_dict
+
+
+def make_axes_logscale_for_HR(ax: plt.axes, x_major: list, y_major: list) -> plt.axes:
+    ax.set_xscale('log', base=2)
+    ax.set_yscale('log', base=2)
+    ax.xaxis.set_major_locator(plticker.FixedLocator(x_major))
+    ax.xaxis.set_major_formatter(plticker.FixedFormatter(x_major))
+    ax.xaxis.set_minor_locator(plticker.MultipleLocator(base=0.1))
+    ax.xaxis.set_minor_formatter(plticker.NullFormatter())
+    ax.yaxis.set_major_locator(plticker.FixedLocator(y_major))
+    ax.yaxis.set_major_formatter(plticker.FixedFormatter(y_major))
+    ax.yaxis.set_minor_locator(plticker.MultipleLocator(base=0.1))
+    ax.yaxis.set_minor_formatter(plticker.NullFormatter())
+    return ax

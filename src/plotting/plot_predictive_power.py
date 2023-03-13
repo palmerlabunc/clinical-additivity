@@ -19,7 +19,7 @@ def calc_tpr_fpr(df: pd.DataFrame, model: str, threshold: float) -> tuple:
 
 def plot_roc_curve(indf: pd.DataFrame):
     color_dict = get_model_colors()
-    fig, ax = plt.subplots(figsize=(2.5, 2.5))
+    fig, ax = plt.subplots(figsize=(2.25, 2.25))
     sns.despine()
     ax.set_xlim(-0.05, 1.05)
     ax.set_ylim(-0.05, 1.05)
@@ -92,11 +92,11 @@ def plot_swarmplot(indf):
     optimal_threshold = thresholds[optimal_idx]
 
     # plot
-    fig, ax = plt.subplots(figsize=(2.5, 1.5))
+    fig, ax = plt.subplots(figsize=(2.25, 1))
 
     sns.despine()
     sns.swarmplot(x='prob_success_add', y='PFS_improvement', data=tmp, ax=ax,
-                  palette=['#23b200', "#9900cc"], size=4, alpha=0.8)
+                  palette=['#23b200', "#9900cc"], size=3, alpha=0.8)
     ax.set_xlabel('Prob(success) under Additivity')
     ax.set_ylabel('PFS improvement')
     ax.legend().remove()
