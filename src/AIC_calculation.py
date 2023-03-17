@@ -14,12 +14,13 @@ warnings.filterwarnings("ignore")
 with open('config.yaml', 'r') as f:
     CONFIG = yaml.safe_load(f)
 
-COMBO_SEED_SHEET = CONFIG['metadata_sheet']['combo_seed']
-COMBO_DATA_DIR = CONFIG['dir']['combo_data']
-RAW_COMBO_DATA_DIR = CONFIG['dir']['raw_combo_data']
-PFS_PRED_DIR = CONFIG['dir']['PFS_prediction']
-FIG_DIR = f"{CONFIG['dir']['figures']}/weibull_fit"
-TABLE_DIR = CONFIG['dir']['tables']
+config_dict = CONFIG['approved']
+COMBO_SEED_SHEET = config_dict['metadata_sheet_seed']
+COMBO_DATA_DIR = config_dict['data_dir']
+RAW_COMBO_DATA_DIR = config_dict['raw_dir']
+PFS_PRED_DIR = config_dict['pred_dir']
+FIG_DIR = f"{config_dict['fig_dir']}/weibull_fit"
+TABLE_DIR = config_dict['table_dir']
 Path(FIG_DIR).mkdir(exist_ok=True, parents=True)
 
 
@@ -129,7 +130,7 @@ def main():
     indf = import_input_data()
     lik_df = calculate_NLL(indf, weibull_fit_fig=True)
     aic_df = calculate_AIC(lik_df)
-    aic_df.to_csv(f'{TABLE_DIR}/approved_combinations_AIC.csv', index=False)
+    aic_df.to_csv(f'{TABLE_DIR}/AIC.csv', index=False)
     print(calculate_relative_AIC(aic_df))
 
 

@@ -92,7 +92,8 @@ rule all:
         f"{config['fig_dir']}/CRC_cetuximab_5FU_BestAvgResponse_corr.pdf",
         f"{config['fig_dir']}/Dabrafenib_Trametinib_AUC_corr.pdf",
         f"{config['fig_dir']}/CTRPv2_corr_distributions.pdf",
-        f"{config['table_dir']}/experimental_correlation_report.csv"
+        f"{config['table_dir']}/experimental_correlation_report.csv",
+        f"{config['approved']['table_dir']}/AIC.csv",
         #f"{config['all_phase3']['fig_dir']}/roc_curve.pdf"
 
 
@@ -282,7 +283,7 @@ rule AIC:
         ALL_APPROVED_PRED_FILES,
         f"{config['approved']['cox_result']}"
     output:
-        f"{config['approved']['table_dir']}/approved_combinations_AIC.csv"
+        f"{config['approved']['table_dir']}/AIC.csv"
     script:
         "src/AIC_calculation.py"
 
