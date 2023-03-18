@@ -47,7 +47,7 @@ def plot_scatterplot_for_review(results: pd.DataFrame) -> plt.figure:
     sns.scatterplot(y='HR(combo/control)', x='HR_add', data=results, zorder=2, alpha=0.8,
                     hue='PFS_improvement', hue_order=[1, 0], palette=['#23b200', "#9900cc"], 
                     s=10, ax=ax)
-    ticks = [0.25, 0.5, 1]
+    ticks = [0.2, 0.5, 1]
     ax = make_axes_logscale_for_HR(ax, ticks, ticks)
     #ax.set_title('All trials analyzed')
     ax.set_xlabel('Expected Hazard Ratio')
