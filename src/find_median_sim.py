@@ -2,9 +2,10 @@ import pandas as pd
 import numpy as np
 from multiprocessing import Pool
 import argparse
-from hsa_additivity_model import predict_both, subtract_which_scan_time
 import yaml
 import tempfile
+import os
+from hsa_additivity_model import predict_both, subtract_which_scan_time
 
 with open('config.yaml', 'r') as f:
     CONFIG = yaml.safe_load(f)
@@ -89,14 +90,14 @@ if __name__ == '__main__':
                         help='Dataset to use (approved, all_phase3, placebo')
     args = parser.parse_args()
 
+    table_dir = CONFIG['table_dir']
     config_dict = CONFIG[args.dataset]
-    temp_dir_path = CONFIG['temp_dir']
     sheet = config_dict['metadata_sheet']
     data_dir = config_dict['data_dir']
-    pred_dir = config_dict['pred_dir']
     outfile = config_dict['metadata_sheet_seed']
     
     indf = pd.read_csv(sheet, sep='\t')
-    with tempfile.TemporaryDirectory(dir=temp_dir_path) as temp_dir:
+
+    with tempfile.TemporaryDirectory(dir=table_dir) as temp_dir:
         make_predictions_diff_seeds(indf, data_dir, temp_dir)
         find_median_sim(indf, temp_dir, save=True, outfile=outfile)
