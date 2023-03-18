@@ -245,8 +245,8 @@ rule predict_success:
         f"{config['approved']['cox_result']}",
         f"{config['all_phase3']['cox_result']}"
     output:
-        f"{config['approved']['fig_dir']}/HR_combo_control_scatterplot.pdf",
-        f"{config['approved']['table_dir']}/HR_predicted_vs_control.csv"
+        f"{config['fig_dir']}/HR_combo_control_scatterplot.pdf",
+        f"{config['table_dir']}/HR_predicted_vs_control.csv"
     shell:
         "python src/predict_success.py both"
 
