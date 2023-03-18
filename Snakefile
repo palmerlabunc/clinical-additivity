@@ -94,7 +94,9 @@ rule all:
         f"{config['fig_dir']}/CTRPv2_corr_distributions.pdf",
         f"{config['table_dir']}/experimental_correlation_report.csv",
         f"{config['approved']['table_dir']}/AIC.csv",
-        f"{config['all_phase3']['fig_dir']}/roc_curve.pdf"
+        f"{config['all_phase3']['fig_dir']}/roc_curve.pdf",
+        f"{config['all_phase3']['table_dir']}/predictive_power.csv",
+        f"{config['all_phase3']['fig_dir']}/additivity_prob_success_swarm_plot.pdf"
 
 
 rule preprocess:
