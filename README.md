@@ -49,3 +49,10 @@ You can reconstruct all tables and figures in the article by running the followi
 snakemake --cores {N} all
 ```
 
+## Note on Methods
+
+For each patient the combination's progression-free survival (PFS) time is:
+- Highest single agent model (a.k.a. independent drug action model): $max(PFS_A + PFS_B)$
+- Additivity model: $PFS_A + PFS_B - first scan time$
+
+Note, to ensure that additivity does not result in shorter PFS than the monotherapy, we took the maximum between $PFS_A + PFS_B - first scan time$ and $PFS_A$.
